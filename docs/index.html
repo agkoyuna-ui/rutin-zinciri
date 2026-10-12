@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rutin Zinciri</title>
+<meta name="theme-color" content="#F2F3EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101311" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rutin">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column with a sticky header and tabs; the UI stays neutral so the only real color is the tier color of each day */
+:root{
+  --bg:#F2F3EF; --surface:#FFFFFF; --surface-2:#E7E9E3; --line:#D6D9D1; --ink:#17201A; --muted:#5B645D;
+  --t1:#D93C41; --t2:#E0A01A; --t3:#2A9346; --part:#AEB4AA;
+  --t1-soft:#FBE3E2; --t2-soft:#FBEFCF; --t3-soft:#DBEFE0;
+  --on-t1:#FFFFFF; --on-t2:#241B04; --on-t3:#FFFFFF;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:10px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101311; --surface:#181C19; --surface-2:#232824; --line:#30362F; --ink:#E7ECE7; --muted:#97A098;
+    --t1:#EE5257; --t2:#EDB33A; --t3:#3DB15C; --part:#535A53;
+    --t1-soft:#3A1F20; --t2-soft:#392D13; --t3-soft:#173020;
+    --on-t1:#FFFFFF; --on-t2:#1E1603; --on-t3:#06140A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101311; --surface:#181C19; --surface-2:#232824; --line:#30362F; --ink:#E7ECE7; --muted:#97A098;
+  --t1:#EE5257; --t2:#EDB33A; --t3:#3DB15C; --part:#535A53;
+  --t1-soft:#3A1F20; --t2-soft:#392D13; --t3-soft:#173020;
+  --on-t1:#FFFFFF; --on-t2:#1E1603; --on-t3:#06140A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+h1,h2{font-family:var(--f-display);text-wrap:balance;margin:0}
+h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:17px;font-weight:600}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px}
+.brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 4px;flex-wrap:wrap}
+.meta{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.sync{display:inline-flex;align-items:center;gap:6px}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--part);display:inline-block}
+.sync[data-s="db"] i{background:var(--t3)}
+.sync[data-s="saving"] i{background:var(--t2)}
+.sync[data-s="err"] i{background:var(--t1)}
+.sync[data-s="local"] i{background:var(--muted)}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs button{appearance:none;flex:1;border:0;background:none;padding:10px 12px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+
+main.wrap{padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+section{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.note{margin:0;padding:10px 12px;border-radius:8px;background:var(--surface-2);font-size:13px;color:var(--muted)}
+
+/* Day */
+.datebar{display:flex;align-items:center;gap:10px}
+.icon{appearance:none;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:20px;line-height:1;cursor:pointer;flex:none}
+.icon:disabled{opacity:.35;cursor:default}
+.dlabel{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center}
+.dlabel strong{font-family:var(--f-display);font-size:18px;font-weight:600}
+.dlabel span{font-size:13px;color:var(--muted)}
+.linkbtn{appearance:none;border:0;background:none;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:13px;align-self:center}
+
+.score-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.big{font-family:var(--f-display);font-weight:700;font-size:56px;line-height:1;letter-spacing:-.02em}
+.score-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--surface-2);font-size:13px;font-weight:600}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--part)}
+.pill[data-t="1"]{background:var(--t1-soft)} .pill[data-t="1"]::before{background:var(--t1)}
+.pill[data-t="2"]{background:var(--t2-soft)} .pill[data-t="2"]::before{background:var(--t2)}
+.pill[data-t="3"]{background:var(--t3-soft)} .pill[data-t="3"]::before{background:var(--t3)}
+.bar{position:relative;height:10px;background:var(--surface-2);border-radius:999px;margin:28px 0 10px}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--part);transition:width .3s ease}
+.bar[data-t="1"] .fill{background:var(--t1)}
+.bar[data-t="2"] .fill{background:var(--t2)}
+.bar[data-t="3"] .fill{background:var(--t3)}
+.mk{position:absolute;top:-22px;transform:translateX(-50%);font:500 11px var(--f-mono);color:var(--muted);white-space:nowrap}
+.mk::after{content:"";position:absolute;left:50%;top:18px;width:2px;height:14px;margin-left:-1px;background:var(--ink);opacity:.35}
+.chaintxt{margin:0;font-size:13px;color:var(--muted)}
+
+.items{list-style:none;margin:0;padding:0 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;align-items:center;padding-block:14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.info{display:flex;flex-direction:column;min-width:0}
+.nm{font-weight:600}
+.hn{font-size:13px;color:var(--muted)}
+.st{font:500 12px var(--f-mono);color:var(--muted);min-height:1em}
+.row[data-t="1"] .st{color:var(--t1)}
+.row[data-t="2"] .st{color:var(--ink)}
+.row[data-t="3"] .st{color:var(--t3)}
+.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.lv{appearance:none;border:0;background:var(--surface);min-width:66px;height:44px;padding:4px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;font-size:13px;line-height:1.15;cursor:pointer}
+.lv + .lv{border-left:1px solid var(--line)}
+.lv small{font:500 11px var(--f-mono);color:var(--muted)}
+.lv:disabled{cursor:default;opacity:.5}
+.lv[data-l="1"][aria-pressed="true"]{background:var(--t1);color:var(--on-t1)}
+.lv[data-l="2"][aria-pressed="true"]{background:var(--t2);color:var(--on-t2)}
+.lv[data-l="3"][aria-pressed="true"]{background:var(--t3);color:var(--on-t3)}
+.lv[aria-pressed="true"] small{color:inherit;opacity:.85}
+.amt{display:flex;align-items:center;gap:6px;height:44px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:text}
+.amt input{width:58px;border:0;background:transparent;color:var(--ink);font:500 16px var(--f-mono);text-align:right;padding:0}
+.amt input:focus{outline:none}
+.amt:focus-within{outline:2px solid var(--ink);outline-offset:1px}
+.amt .u{font-size:13px;color:var(--muted);min-width:34px}
+.row[data-t="p"] .amt{border-style:dashed;border-color:var(--muted)}
+.chk{appearance:none;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-weight:600;font-size:14px;cursor:pointer}
+.chk .box{width:18px;height:18px;border:2px solid var(--muted);border-radius:5px;display:inline-grid;place-items:center}
+.chk[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk[aria-pressed="true"] .box{border-color:var(--bg);background:var(--bg)}
+.chk[aria-pressed="true"] .box::after{content:"";width:8px;height:4px;border-left:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(-45deg) translate(1px,-1px)}
+.chk:disabled{opacity:.5;cursor:default}
+@media (max-width:600px){
+  .row{grid-template-columns:1fr}
+  .ctl{justify-content:stretch}
+  .seg{flex:1}
+  .lv{flex:1;min-width:0}
+}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi b{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.1}
+.kpi span{font-size:13px;color:var(--muted)}
+
+/* Chain calendar */
+.cal-card{display:flex;flex-direction:column;gap:10px;align-items:center}
+.cal-head,.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%;max-width:440px}
+.cal-head span{text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.cell{appearance:none;aspect-ratio:1;max-width:100%;border:1px solid transparent;border-radius:8px;background:var(--surface-2);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;font:500 13px var(--f-mono);cursor:pointer;line-height:1.05}
+.cell small{font:600 9px var(--f-body);text-transform:uppercase;letter-spacing:.05em}
+.cell.blank{background:transparent;cursor:default}
+.cell[data-t="1"]{background:var(--t1);color:var(--on-t1)}
+.cell[data-t="2"]{background:var(--t2);color:var(--on-t2)}
+.cell[data-t="3"]{background:var(--t3);color:var(--on-t3)}
+.cell[data-t="p"]{background:repeating-linear-gradient(135deg,var(--surface-2) 0 4px,var(--part) 4px 6px)}
+.cell[data-t="f"]{background:transparent;border:1px dashed var(--line);color:var(--muted);cursor:default}
+.cell.today{outline:2px solid var(--ink);outline-offset:2px}
+.cell.sel:not(.today){box-shadow:inset 0 0 0 2px var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted);justify-content:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:4px;display:inline-block;background:var(--surface-2)}
+.sw.t1{background:var(--t1)} .sw.t2{background:var(--t2)} .sw.t3{background:var(--t3)}
+.sw.p{background:repeating-linear-gradient(135deg,var(--surface-2) 0 3px,var(--part) 3px 5px)}
+.sw.f{background:transparent;border:1px dashed var(--muted)}
+
+/* Progress */
+.prog{display:flex;flex-direction:column;gap:6px;padding-block:14px;border-bottom:1px solid var(--line)}
+.prog:last-child{border-bottom:0;padding-bottom:0}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ph .pct{font-size:15px}
+.pbar{position:relative;height:8px;background:var(--surface-2);border-radius:999px}
+.pbar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--part)}
+.pbar[data-s="good"] i{background:var(--t3)}
+.pbar[data-s="mid"] i{background:var(--t2)}
+.pbar[data-s="bad"] i{background:var(--t1)}
+.pbar b{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink);opacity:.55}
+.pd{font-size:13px;margin:0}
+.counts{display:flex;flex-wrap:wrap;gap:8px}
+.counts span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--surface-2);font-size:13px}
+
+/* Settings */
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field input{height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);padding:0 10px;font:500 16px var(--f-mono);max-width:100%;width:100%}
+.fields{display:flex;flex-wrap:wrap;gap:12px}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+td input{width:72px;height:40px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:0 8px;font:500 16px var(--f-mono)}
+td input[aria-invalid="true"]{border-color:var(--t1)}
+.th-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.err{color:var(--t1);font-size:13px;margin:0;min-height:1em}
+.rules{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.btn{appearance:none;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-weight:600;cursor:pointer;align-self:flex-start}
+.syncline{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;font-weight:600}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.field.wide{flex:1 1 220px}
+h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.copyrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.copyrow input{flex:1 1 200px;min-width:0;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);padding:0 10px;font:500 13px var(--f-mono)}
+.kv{margin:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.kv b{color:var(--ink);font-weight:500}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <h1>Rutin Zinciri</h1>
+      <div class="meta">
+        <span id="dayCount" class="mono">Gün 1 / 90</span>
+        <span id="sync" class="sync" data-s="local"><i></i><span id="syncTxt">Sadece bu cihaz</span></span>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Bölümler">
+      <button type="button" role="tab" id="tab-gun" data-tab="gun" aria-selected="true">Bugün</button>
+      <button type="button" role="tab" id="tab-zincir" data-tab="zincir" aria-selected="false">Zincir</button>
+      <button type="button" role="tab" id="tab-ilerleme" data-tab="ilerleme" aria-selected="false">İlerleme</button>
+      <button type="button" role="tab" id="tab-ayarlar" data-tab="ayarlar" aria-selected="false">Ayarlar</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="v-gun" role="tabpanel" aria-labelledby="tab-gun">
+    <p id="localNote" class="note" hidden></p>
+    <div class="datebar">
+      <button type="button" id="prevDay" class="icon" aria-label="Önceki gün">‹</button>
+      <div class="dlabel"><strong id="dTitle">Bugün</strong><span id="dSub"></span></div>
+      <button type="button" id="nextDay" class="icon" aria-label="Sonraki gün">›</button>
+    </div>
+    <button type="button" id="goToday" class="linkbtn" hidden>Bugüne dön</button>
+
+    <div class="card">
+      <div class="score-top">
+        <div><div class="lbl">Günün puanı</div><div class="big mono" id="scoreNum">0</div></div>
+        <div class="score-side">
+          <span id="tierPill" class="pill" data-t="0">Henüz başlamadın</span>
+          <span id="pointsTxt" class="muted mono small">0 / 24 puan</span>
+        </div>
+      </div>
+      <div class="bar" id="bar" data-t="0">
+        <div class="fill" id="barFill" style="width:0%"></div>
+        <span class="mk" id="mk1">Yoğun</span>
+        <span class="mk" id="mk2">Normal</span>
+        <span class="mk" id="mk3">Boş</span>
+      </div>
+      <p id="chainTxt" class="chaintxt"></p>
+    </div>
+
+    <ol class="items" id="items" aria-label="Günün maddeleri"></ol>
+  </section>
+
+  <section id="v-zincir" role="tabpanel" aria-labelledby="tab-zincir" hidden>
+    <div class="kpis" id="chainKpis"></div>
+    <div class="card cal-card">
+      <div class="cal-head" aria-hidden="true"><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></div>
+      <div class="cal" id="cal"></div>
+      <div class="legend">
+        <span><i class="sw t3"></i>Boş gün</span>
+        <span><i class="sw t2"></i>Normal gün</span>
+        <span><i class="sw t1"></i>Yoğun gün</span>
+        <span><i class="sw p"></i>Kısmi</span>
+        <span><i class="sw"></i>Hiç yapılmadı</span>
+        <span><i class="sw f"></i>Gelecek</span>
+      </div>
+    </div>
+    <p class="note">Zincir, puanın en az yoğun gün seviyesine ulaştığı günlerde devam eder. Bir güne tıklayıp o günü düzenleyebilirsin.</p>
+  </section>
+
+  <section id="v-ilerleme" role="tabpanel" aria-labelledby="tab-ilerleme" hidden>
+    <div class="kpis" id="progKpis"></div>
+    <div class="card">
+      <h2>Dönem hedefine göre</h2>
+      <p class="muted small" style="margin:4px 0 0">Hedef, her maddenin normal gün değeri ile dönemdeki gün sayısının çarpımı. Çubuktaki ince çizgi bugüne kadar olman gereken yeri gösteriyor.</p>
+      <div id="progList"></div>
+    </div>
+  </section>
+
+  <section id="v-ayarlar" role="tabpanel" aria-labelledby="tab-ayarlar" hidden>
+    <div class="card stack">
+      <h2>Telefon ve PC</h2>
+      <p class="syncline"><span id="sync2" class="sync" data-s="local"><i></i></span><span id="syncMsg"></span></p>
+
+      <div id="pcBlock" class="stack" hidden>
+        <p class="muted small" style="margin:0">Veriler bu bilgisayarda duruyor. Telefon evdeki Wi-Fi'ye bağlıyken ve bu program açıkken ikisi kendiliğinden eşitlenir. Dışarıdayken telefona girdiklerin telefonda bekler, eve gelince gönderilir.</p>
+        <div id="pairSteps" class="stack">
+          <h3>Telefonu bağla</h3>
+          <ol class="steps">
+            <li>Telefon bu bilgisayarla aynı Wi-Fi'de olsun.</li>
+            <li>Bu bağlantıyı telefonuna gönder (örneğin WhatsApp'ta kendine) ve Chrome'da aç. Bağlantıyı başkasıyla paylaşma.
+              <div class="copyrow"><input type="text" id="pairLink" readonly aria-label="Eşleştirme bağlantısı"><button type="button" class="btn" id="copyLink">Kopyala</button></div>
+            </li>
+            <li>Chrome "yerel ağdaki cihazlara bağlanmak istiyor" diye sorarsa İzin ver'e bas.</li>
+            <li>Üstte "Senkron açık" yazınca Chrome menüsünden "Ana ekrana ekle"yi seç.</li>
+          </ol>
+          <p class="kv">Elle girmek için: PC adresi <b id="pairAddr" class="mono">–</b>, kod <b id="pairKey" class="mono">–</b></p>
+          <p class="kv">Bağlantı telefonda çalışmazsa telefonda şunu aç (sadece evde çalışır): <b id="lanLink" class="mono">–</b></p>
+        </div>
+        <p id="noLan" class="err" hidden>Bu bilgisayar şu an bir ağa bağlı görünmüyor. Wi-Fi'ye bağlanınca telefonu bağlama adımları burada çıkar.</p>
+      </div>
+
+      <div id="phoneBlock" class="stack" hidden>
+        <p class="muted small" style="margin:0">Veriler evdeki PC'de duruyor. Bu cihaz PC ile aynı Wi-Fi'deyken kendiliğinden eşitlenir. Dışarıdayken girdiklerin burada bekler, eve gelince gönderilir.</p>
+        <div class="fields">
+          <label class="field wide" for="pcAddr" id="pcAddrField">PC adresi<input type="text" id="pcAddr" inputmode="url" placeholder="192.168.1.20:8765" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+          <label class="field" for="pcKey">Kod<input type="text" id="pcKey" placeholder="abcde-fghjk" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+        </div>
+        <button type="button" class="btn primary" id="pairBtn">Bağlan</button>
+        <p id="pairHint" class="err" hidden></p>
+        <p class="muted small" style="margin:0">Adresi ve kodu PC'de Rutin Zinciri'ni açınca Ayarlar bölümünde görürsün.</p>
+      </div>
+    </div>
+    <div class="card stack">
+      <h2>Dönem ve kalori</h2>
+      <div class="fields">
+        <label class="field" for="setStart">Başlangıç tarihi<input type="date" id="setStart"></label>
+        <label class="field" for="setLen">Süre (gün)<input type="number" id="setLen" min="7" max="365" step="1" inputmode="numeric"></label>
+        <label class="field" for="setKcalTarget">Günlük kalori hedefi (kcal)<input type="number" id="setKcalTarget" min="500" max="6000" step="10" inputmode="numeric"></label>
+      </div>
+    </div>
+    <div class="card stack">
+      <h2>Seviye değerleri</h2>
+      <p class="muted small" style="margin:0">Bir seviye butonuna bastığında bu değer yazılır. Elle miktar girersen seviye bu değerlere göre otomatik seçilir.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Madde</th><th><span class="th-dot" style="background:var(--t1)"></span>Yoğun</th><th><span class="th-dot" style="background:var(--t2)"></span>Normal</th><th><span class="th-dot" style="background:var(--t3)"></span>Boş</th><th>Birim</th></tr></thead>
+          <tbody id="lvTable"></tbody>
+        </table>
+      </div>
+      <p class="err" id="lvErr"></p>
+      <button type="button" class="btn" id="resetLv">Varsayılan değerlere dön</button>
+    </div>
+    <div class="card stack">
+      <h2>Puan nasıl hesaplanıyor</h2>
+      <ul class="rules" id="rules"></ul>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var DEFAULT_START = "2026-10-12", DEFAULT_LEN = 90, DEFAULT_KCAL = 1500;
+  var LS_KEY = "rutin-zinciri-v2", SYNC_LS = "rutin-zinciri-pc", TAB_LS = "rutin-zinciri-tab";
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/, FIELD_RE = /^[a-z0-9_]{1,32}$/, MAX_DOCS = 1000;
+  var ITEMS = [
+    {id:"sabah", name:"Sabah bakımı", kind:"check", hint:"Yüz, diş, yatak"},
+    {id:"yuruyus", name:"Yürüyüş", kind:"lvl", unit:"dk", lv:[30,45,120], hint:"Dakika"},
+    {id:"ingilizce", name:"Aktif İngilizce", kind:"lvl", unit:"bölüm", lv:[1,2,3], hint:"Gumball"},
+    {id:"sinav", name:"Şınav", kind:"lvl", unit:"set", lv:[1,2,3], hint:"Her set max"},
+    {id:"proje", name:"Proje", kind:"lvl", unit:"dk", lv:[15,60,120], hint:"Dakika"},
+    {id:"roblox", name:"Roblox", kind:"lvl", unit:"dk", lv:[15,60,120], hint:"Dakika"},
+    {id:"etsy", name:"Etsy / trading", kind:"lvl", unit:"dk", lv:[15,30,60], alt:true, hint:"Gün aşırı, puanı bonus"},
+    {id:"kitap", name:"Kitap", kind:"lvl", unit:"sayfa", lv:[10,15,20], hint:"Sayfa"},
+    {id:"yemek", name:"Yemek takibi", kind:"check", kcal:true, hint:"Her öğün"},
+    {id:"aksam", name:"Akşam planı", kind:"check", hint:"Yarının seviyesini seç"}
+  ];
+  var TIER = ["", "Yoğun", "Normal", "Boş"];
+  var MONTHS = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+  var nf = new Intl.NumberFormat("tr-TR", {maximumFractionDigits:1});
+
+  var cfg = {start:DEFAULT_START, len:DEFAULT_LEN, kcal:DEFAULT_KCAL, lv:{}};
+  var cfgT = 0, cfgPending = false;
+  /* days[date] = {v:{id:amount}, ft:{id:lastEditMs}, t:lastEditMs}; dirty[date][id] marks fields not yet stored */
+  var days = {}, dirty = {};
+  var viewDate = todayStr(), tab = "gun";
+
+  function $(id){ return document.getElementById(id); }
+  function pad(n){ return String(n).padStart(2,"0"); }
+  function ds(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function pd(s){ var a = s.split("-").map(Number); return new Date(a[0], a[1]-1, a[2]); }
+  function addDays(s, n){ var d = pd(s); d.setDate(d.getDate()+n); return ds(d); }
+  function diffDays(a, b){ return Math.round((pd(b) - pd(a)) / 86400000); }
+  function todayStr(){ return ds(new Date()); }
+  function plain(x){ return x && typeof x === "object" && !Array.isArray(x) ? x : {}; }
+
+  /* ---------- this device's copy ---------- */
+  function lsGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
+  function lsSet(k, v){ try { localStorage.setItem(k, v); return true; } catch(e) { return false; } }
+  function normDay(e){
+    var out = {v:{}, ft:{}, t:0}, v = plain(e && e.v), ft = plain(e && e.ft);
+    Object.keys(v).forEach(function(k){ if (FIELD_RE.test(k) && typeof v[k] === "number" && isFinite(v[k]) && v[k] >= 0) out.v[k] = v[k]; });
+    Object.keys(ft).forEach(function(k){ if (FIELD_RE.test(k) && typeof ft[k] === "number" && isFinite(ft[k])) out.ft[k] = ft[k]; });
+    out.t = Number(e && e.t) || 0;
+    return out;
+  }
+  function loadLocal(){
+    var raw = lsGet(LS_KEY);
+    if (!raw) return;
+    try {
+      var x = JSON.parse(raw), xd = plain(x.days), xq = plain(x.dirty);
+      Object.keys(xd).forEach(function(k){ if (DATE_RE.test(k)) days[k] = normDay(xd[k]); });
+      Object.keys(xq).forEach(function(k){
+        if (!days[k]) return;
+        var o = {};
+        Object.keys(plain(xq[k])).forEach(function(f){ if (FIELD_RE.test(f)) o[f] = true; });
+        if (Object.keys(o).length) dirty[k] = o;
+      });
+      if (x.cfg) cfg = normCfg(x.cfg);
+      cfgT = Number(x.cfgT) || 0;
+      cfgPending = !!x.cfgPending;
+    } catch(e) {}
+  }
+  function saveLocal(){
+    lsSet(LS_KEY, JSON.stringify({days:days, dirty:dirty, cfg:cfg, cfgT:cfgT, cfgPending:cfgPending}));
+  }
+  function normCfg(x){
+    var out = {start:DEFAULT_START, len:DEFAULT_LEN, kcal:DEFAULT_KCAL, lv:{}};
+    if (x && typeof x.start === "string" && DATE_RE.test(x.start)) out.start = x.start;
+    if (x && typeof x.len === "number" && x.len >= 7 && x.len <= 365) out.len = Math.round(x.len);
+    if (x && typeof x.kcal === "number" && x.kcal >= 500 && x.kcal <= 6000) out.kcal = Math.round(x.kcal);
+    if (x && x.lv && typeof x.lv === "object") {
+      ITEMS.forEach(function(it){
+        var a = x.lv[it.id];
+        if (Array.isArray(a) && a.length === 3 && a.every(function(n){ return typeof n === "number" && n > 0; })) out.lv[it.id] = a.slice();
+      });
+    }
+    return out;
+  }
+  function markDirty(date, f){ (dirty[date] || (dirty[date] = {}))[f] = true; }
+  function clearDirty(date, f){
+    if (!dirty[date]) return;
+    delete dirty[date][f];
+    if (!Object.keys(dirty[date]).length) delete dirty[date];
+  }
+  function setField(date, id, n){
+    var d = days[date] || (days[date] = {v:{}, ft:{}, t:0});
+    /* always newer than the copy we last saw, even if another device's clock runs ahead */
+    var stamp = Math.max(Date.now(), (d.ft[id] || 0) + 1);
+    d.v[id] = n > 0 ? Math.min(n, 99999) : 0;
+    d.ft[id] = stamp;
+    if (stamp > d.t) d.t = stamp;
+    markDirty(date, id);
+  }
+  function markCfg(){
+    cfgT = Math.max(Date.now(), cfgT + 1); cfgPending = true;
+    saveLocal();
+    scheduleSync();
+  }
+
+  /* ---------- sync with the program on the home PC ---------- */
+  var HOSTN = location.hostname;
+  var ON_PC = HOSTN === "localhost" || HOSTN === "127.0.0.1" || HOSTN === "[::1]";   /* opened on the PC itself */
+  var FROM_PC = location.protocol === "http:";                                         /* the PC program serves this page */
+  var syncConf = {addr:"", key:"", ok:false, last:0};
+  var syncTimer = null, syncing = false, syncAgain = false, burst = 0, nextAutoAt = 0;
+  var lastErr = null, lastErrMsg = "", pairInfo = null;
+
+  function normAddr(s){
+    s = String(s || "").trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+    if (!s) return "";
+    if (!/:\d{1,5}$/.test(s)) s += ":8765";
+    return /^[A-Za-z0-9.\-]+:\d{1,5}$/.test(s) ? s.toLowerCase() : "";
+  }
+  function normKey(s){ return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+  function prettyKey(k){ return k.length > 5 ? k.slice(0, 5) + "-" + k.slice(5) : k; }
+  function saveSyncConf(){ lsSet(SYNC_LS, JSON.stringify(syncConf)); }
+  function loadSyncConf(){
+    var raw = lsGet(SYNC_LS);
+    if (raw) { try { var y = JSON.parse(raw); syncConf = {addr:normAddr(y.addr), key:normKey(y.key), ok:!!y.ok, last:Number(y.last) || 0}; } catch(e) {} }
+    /* pairing link from the PC: #pc=192.168.1.20:8765&kod=abcde-fghjk */
+    var h = location.hash.replace(/^#/, "");
+    if (!h) return;
+    var a = /(?:^|&)pc=([^&]+)/.exec(h), k = /(?:^|&)kod=([^&]+)/.exec(h), addr = "", key = "";
+    try { addr = a ? normAddr(decodeURIComponent(a[1])) : ""; key = k ? normKey(decodeURIComponent(k[1])) : ""; } catch(e) {}
+    if (key.length >= 8 && (addr || FROM_PC)) {
+      if (!addr) addr = syncConf.addr;
+      if (addr !== syncConf.addr || key !== syncConf.key) syncConf = {addr:addr, key:key, ok:false, last:0};
+      saveSyncConf();
+    }
+    if (a || k) { try { history.replaceState(null, "", location.pathname + location.search); } catch(e) {} }
+  }
+  function syncReady(){ return syncConf.key.length >= 8 && (FROM_PC || !!syncConf.addr); }
+  function baseUrl(){ return FROM_PC ? "" : "http://" + syncConf.addr; }
+  function pendingCount(){
+    var n = cfgPending ? 1 : 0;
+    Object.keys(dirty).forEach(function(date){ n += Object.keys(dirty[date]).length; });
+    return n;
+  }
+
+  async function api(pathname, method, body, ms){
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
+    try {
+      var headers = {"X-Rutin-Key": syncConf.key};
+      if (body) headers["Content-Type"] = "application/json";
+      var res = await fetch(baseUrl() + pathname, {method:method, headers:headers, body: body ? JSON.stringify(body) : undefined, cache:"no-store", signal: ctrl ? ctrl.signal : undefined});
+      var out = null;
+      try { out = await res.json(); } catch(e) {}
+      if (!res.ok || !out || !out.ok) {
+        var err = new Error((out && out.message) || ("HTTP " + res.status));
+        err.status = res.status || 500;
+        throw err;
+      }
+      return out;
+    } finally { if (to) clearTimeout(to); }
+  }
+
+  /* Take what the PC has that is newer, field by field; returns true if this device still has edits the PC lacks */
+  function mergeRemote(d){
+    var changed = false, reassert = false, lvChanged = false;
+    var rdays = plain(d && d.days);
+    Object.keys(rdays).forEach(function(date){
+      if (!DATE_RE.test(date)) return;
+      var r = plain(rdays[date]), rv = plain(r.v), rft = plain(r.ft), l = days[date], names = {};
+      Object.keys(rv).forEach(function(f){ names[f] = true; });
+      if (l) Object.keys(l.v).forEach(function(f){ names[f] = true; });
+      Object.keys(names).forEach(function(f){
+        if (!FIELD_RE.test(f)) return;
+        var rHas = typeof rv[f] === "number" && isFinite(rv[f]) && rv[f] >= 0;
+        var rt = Number(rft[f]) || 0;
+        var lHas = !!l && typeof l.v[f] === "number";
+        var lt = lHas ? (l.ft[f] || 0) : -1;
+        var isDirty = !!(dirty[date] && dirty[date][f]);
+        if (rHas && (rt > lt || (rt === lt && !isDirty && l.v[f] !== rv[f]))) {
+          if (!l) l = days[date] = {v:{}, ft:{}, t:0};
+          l.v[f] = rv[f]; l.ft[f] = rt;
+          if (rt > l.t) l.t = rt;
+          clearDirty(date, f);
+          changed = true;
+        } else if (lHas && !isDirty && (!rHas || lt > rt)) {
+          markDirty(date, f);
+          reassert = true;
+        }
+      });
+    });
+    Object.keys(days).forEach(function(date){
+      if (rdays[date]) return;
+      Object.keys(days[date].v).forEach(function(f){
+        if (!(dirty[date] && dirty[date][f])) { markDirty(date, f); reassert = true; }
+      });
+    });
+    var rt = Number(d && d.cfgT) || 0;
+    if (d && d.cfg && rt > cfgT) {
+      var before = JSON.stringify(cfg.lv);
+      cfg = normCfg(d.cfg); cfgT = rt; cfgPending = false;
+      lvChanged = JSON.stringify(cfg.lv) !== before;
+      changed = true;
+    } else if (cfgT > rt && !cfgPending) {
+      cfgPending = true; reassert = true;
+    }
+    if (changed || reassert) saveLocal();
+    if (lvChanged) buildRows();
+    if (changed) renderAll();
+    return reassert;
+  }
+
+  function scheduleSync(ms){
+    paintSync();
+    if (!syncReady()) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(sync, ms == null ? 800 : ms);
+  }
+  async function sync(){
+    clearTimeout(syncTimer); syncTimer = null;
+    if (!syncReady()) { paintSync(); return; }
+    if (syncing) { syncAgain = true; return; }
+    syncing = true;
+    paintSync();
+    var body = {days:{}}, sent = {}, push = false;
+    Object.keys(dirty).forEach(function(date){
+      var l = days[date];
+      if (!l) { delete dirty[date]; return; }
+      var e = {v:{}, ft:{}};
+      Object.keys(dirty[date]).forEach(function(f){ e.v[f] = l.v[f] || 0; e.ft[f] = l.ft[f] || 0; });
+      body.days[date] = e; sent[date] = e.ft; push = true;
+    });
+    var cfgSent = cfgPending ? cfgT : null;
+    if (cfgPending) { body.cfg = {start:cfg.start, len:cfg.len, kcal:cfg.kcal, lv:cfg.lv}; body.cfgT = cfgT; push = true; }
+    try {
+      /* the very first connection can sit behind the browser's local-network permission prompt */
+      var ms = syncConf.ok || FROM_PC ? 8000 : 45000;
+      var r = push ? await api("/api/sync", "POST", body, ms) : await api("/api/sync", "GET", null, ms);
+      Object.keys(sent).forEach(function(date){
+        Object.keys(sent[date]).forEach(function(f){ if (days[date] && (days[date].ft[f] || 0) === sent[date][f]) clearDirty(date, f); });
+      });
+      if (cfgSent !== null && cfgT === cfgSent) cfgPending = false;
+      mergeRemote(r.data);
+      saveLocal();
+      lastErr = null; lastErrMsg = "";
+      syncConf.ok = true; syncConf.last = Date.now();
+      saveSyncConf();
+      nextAutoAt = Date.now() + 20000;
+    } catch(e) {
+      if (e && e.status === 401) lastErr = "key";
+      else if (e && e.status) { lastErr = "server"; lastErrMsg = e.message || ""; }
+      else { lastErr = "away"; checkPermission(); }
+      nextAutoAt = Date.now() + 60000;
+    } finally {
+      syncing = false;
+      var more = syncAgain || (lastErr === null && pendingCount() > 0);
+      syncAgain = false;
+      /* cap back-to-back rounds so a value the PC keeps refusing cannot spin */
+      if (!more) burst = 0;
+      else if (++burst <= 4) scheduleSync(500);
+      paintSync();
+    }
+  }
+  function checkPermission(){
+    /* only an https page reaching into the home network is gated by this permission */
+    if (location.protocol !== "https:" || !navigator.permissions || !navigator.permissions.query) return;
+    try {
+      navigator.permissions.query({name:"local-network-access"}).then(function(p){
+        if (p && p.state === "denied" && lastErr === "away") { lastErr = "perm"; paintSync(); }
+      }, function(){});
+    } catch(e) {}
+  }
+
+  function fmtWhen(ms){
+    var d = new Date(ms), t = d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
+    return ds(d) === todayStr() ? t : d.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) + " " + t;
+  }
+  function paintSync(){
+    var n = pendingCount(), s;
+    if (!syncReady()) s = ON_PC ? (lastErr ? "away" : "wait") : "none";
+    else if (lastErr === "key") s = "key";
+    else if (lastErr === "server") s = "err";
+    else if (lastErr === "perm") s = "perm";
+    else if (lastErr === "away") s = "away";
+    else if (!syncConf.ok) s = "wait";
+    else if (n) s = "saving";
+    else s = "ok";
+    var awayTxt = ON_PC ? "Program kapalı" : "PC'ye bağlı değil";
+    var map = {
+      none:["local","Sadece bu cihaz"], wait:["saving","Bağlanıyor"], ok:["db","Senkron açık"], saving:["saving","Kaydediliyor"],
+      away:["local", n ? awayTxt + " · " + n + " bekliyor" : awayTxt], perm:["err","İzin gerekli"], key:["err","Kod yanlış"], err:["err","Senkron hatası"]
+    };
+    var m = map[s];
+    $("sync").dataset.s = m[0];
+    $("sync2").dataset.s = m[0];
+    $("syncTxt").textContent = m[1];
+    var last = syncConf.last ? " Son eşitleme " + fmtWhen(syncConf.last) + "." : "";
+    var waiting = n ? " " + n + " değişiklik bu cihazda bekliyor." : "";
+    var noteTxt =
+      s === "none" ? "Bu cihaz henüz PC'ye bağlanmadı, girdiklerin sadece burada duruyor. Bağlamak için PC'de Rutin Zinciri'ni aç ve Ayarlar'daki adımları izle." :
+      s === "key" ? "Kod PC'dekiyle uyuşmuyor. Ayarlar'dan kontrol et." :
+      s === "err" ? (lastErrMsg || "PC'deki program bir hata döndürdü.") :
+      s === "perm" ? "Chrome bu sayfanın ev ağına bağlanmasına izin vermiyor. Chrome'da Ayarlar, Site ayarları, Yerel ağ erişimi bölümünden bu siteye izin ver. Olmazsa PC'deki Ayarlar'da yazan ev adresini dene." :
+      s === "away" && ON_PC ? "Senkron programı çalışmıyor. Masaüstündeki rutin-zinciri klasöründen \"Rutin Zinciri\" dosyasını aç. Girdiklerin bu arada burada bekler." :
+      s === "away" && !syncConf.ok ? "PC'ye ulaşılamadı. Telefon PC ile aynı Wi-Fi'de mi, PC'de Rutin Zinciri açık mı? Chrome yerel ağ izni sorarsa İzin ver'e bas." : "";
+    var note = $("localNote");
+    note.hidden = !noteTxt;
+    note.textContent = noteTxt;
+    $("syncMsg").textContent =
+      s === "ok" ? "Senkron açık." + last :
+      s === "saving" ? "Kaydediliyor…" :
+      s === "wait" ? "Bağlanıyor…" :
+      s === "none" ? "Bu cihaz PC'ye bağlı değil." :
+      s === "away" && ON_PC ? "Senkron programı çalışmıyor." + waiting :
+      s === "away" ? "PC'ye şu an ulaşılamıyor. Evde değilsen bu normal." + waiting + last :
+      noteTxt;
+  }
+
+  function renderPair(){
+    $("pcBlock").hidden = !ON_PC;
+    $("phoneBlock").hidden = ON_PC;
+    $("pcAddrField").hidden = FROM_PC;
+    if (ON_PC) {
+      var p = pairInfo || {};
+      $("pairLink").value = p.link || "";
+      $("pairAddr").textContent = p.addr || "–";
+      $("pairKey").textContent = p.key || "–";
+      $("lanLink").textContent = p.lanLink || "–";
+      $("pairSteps").hidden = !!pairInfo && !p.link;
+      $("noLan").hidden = !pairInfo || !!p.link;
+    } else {
+      var act = document.activeElement;
+      if (act !== $("pcAddr")) $("pcAddr").value = syncConf.addr;
+      if (act !== $("pcKey")) $("pcKey").value = prettyKey(syncConf.key);
+    }
+  }
+  /* On the PC itself the program hands over the code, so there is nothing to type here */
+  function loadPair(){
+    if (!ON_PC) return;
+    fetch("/api/pair", {cache:"no-store"}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
+      if (!p || !p.key) throw new Error("pair");
+      pairInfo = p;
+      var k = normKey(p.key), fresh = k !== syncConf.key || !syncConf.ok;
+      syncConf.key = k;
+      saveSyncConf();
+      if (lastErr === "away" || lastErr === "key") lastErr = null;
+      renderPair();
+      if (fresh) sync(); else paintSync();
+    }).catch(function(){
+      if (!syncReady()) lastErr = "away";
+      paintSync();
+    });
+  }
+  function initSync(){
+    renderPair();
+    if (ON_PC) loadPair();
+    if (syncReady()) sync(); else paintSync();
+  }
+
+  /* ---------- scoring ---------- */
+  function lvOf(it){
+    var o = cfg.lv && cfg.lv[it.id];
+    if (Array.isArray(o) && o.length === 3 && o.every(function(n){ return typeof n === "number" && n > 0; })) return o;
+    return it.lv;
+  }
+  function val(date, id){ var d = days[date]; return d && typeof d.v[id] === "number" ? d.v[id] : 0; }
+  function levelOf(it, a){
+    if (!(a > 0)) return 0;
+    if (it.kind === "check") return 1;
+    var l = lvOf(it);
+    if (a >= l[2]) return 3; if (a >= l[1]) return 2; if (a >= l[0]) return 1;
+    return 0.5;
+  }
+  function pointsOf(date){
+    var p = 0;
+    ITEMS.forEach(function(it){ var a = val(date, it.id); p += it.kind === "check" ? (a > 0 ? 1 : 0) : levelOf(it, a); });
+    return p;
+  }
+  var MAXP = ITEMS.reduce(function(s, it){ return s + (it.kind === "check" ? 1 : 3); }, 0);
+  function threshold(t){ return ITEMS.reduce(function(s, it){ return it.alt ? s : s + (it.kind === "check" ? 1 : t); }, 0); }
+  var TH = [0, threshold(1), threshold(2), threshold(3)];
+  function tierOf(p){ if (p >= TH[3]) return 3; if (p >= TH[2]) return 2; if (p >= TH[1]) return 1; return p > 0 ? 0.5 : 0; }
+  function tkey(t){ return t === 0.5 ? "p" : String(t); }
+  function scoreOf(p){ return Math.round(p / MAXP * 100); }
+  function tierLabel(t){
+    return t === 3 ? "Boş gün seviyesi" : t === 2 ? "Normal gün seviyesi" : t === 1 ? "Yoğun gün seviyesi" : t === 0.5 ? "Yoğun günün altında" : "Henüz başlamadın";
+  }
+  function isFuture(){ return viewDate > todayStr(); }
+  function periodEnd(){ return addDays(cfg.start, cfg.len - 1); }
+  function elapsedDays(){
+    var t = todayStr();
+    if (t < cfg.start) return 0;
+    return Math.min(diffDays(cfg.start, t) + 1, cfg.len);
+  }
+  function fmtAmt(n, unit){
+    var s = nf.format(Math.round(n * 10) / 10) + " " + unit;
+    if (unit === "dk" && n >= 120) s += " (" + nf.format(Math.round(n / 6) / 10) + " sa)";
+    return s;
+  }
+
+  /* ---------- day view ---------- */
+  function buildRows(){
+    var ol = $("items");
+    ol.textContent = "";
+    ITEMS.forEach(function(it){
+      var li = document.createElement("li");
+      li.className = "row"; li.dataset.id = it.id; li.dataset.t = "0";
+      var info = document.createElement("div"); info.className = "info";
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = it.name;
+      var hn = document.createElement("span"); hn.className = "hn"; hn.textContent = it.hint || "";
+      var st = document.createElement("span"); st.className = "st";
+      info.append(nm, hn, st);
+      var ctl = document.createElement("div"); ctl.className = "ctl";
+      if (it.kind === "check") {
+        if (it.kcal) {
+          var kw = document.createElement("label"); kw.className = "amt"; kw.htmlFor = "kcal-in";
+          var ki = document.createElement("input");
+          ki.type = "number"; ki.min = "0"; ki.step = "1"; ki.inputMode = "numeric"; ki.placeholder = "0";
+          ki.id = "kcal-in"; ki.setAttribute("aria-label", "Günün kalorisi (kcal)");
+          ki.addEventListener("input", function(){
+            if (isFuture()) return;
+            var kn = parseFloat(String(ki.value).replace(",", "."));
+            setKcal(isFinite(kn) && kn > 0 ? Math.round(kn) : 0);
+          });
+          var ku = document.createElement("span"); ku.className = "u"; ku.textContent = "kcal";
+          kw.append(ki, ku);
+          ctl.append(kw);
+        }
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "chk"; b.id = "chk-" + it.id; b.setAttribute("aria-pressed", "false");
+        b.setAttribute("aria-label", it.name + ": yapıldı");
+        b.innerHTML = '<span class="box" aria-hidden="true"></span><span>Yapıldı</span>';
+        b.addEventListener("click", function(){ if (isFuture()) return; setVal(it.id, val(viewDate, it.id) > 0 ? 0 : 1, true); });
+        ctl.append(b);
+      } else {
+        var seg = document.createElement("div");
+        seg.className = "seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", it.name + " seviyesi");
+        var l = lvOf(it);
+        [1,2,3].forEach(function(n){
+          var lb = document.createElement("button");
+          lb.type = "button"; lb.className = "lv"; lb.dataset.l = n; lb.id = "lv-" + it.id + "-" + n;
+          lb.setAttribute("aria-pressed", "false");
+          var s1 = document.createElement("span"); s1.textContent = TIER[n];
+          var s2 = document.createElement("small"); s2.textContent = nf.format(l[n-1]) + (it.unit === "dk" ? " dk" : "");
+          lb.append(s1, s2);
+          lb.addEventListener("click", function(){
+            if (isFuture()) return;
+            var cur = val(viewDate, it.id), target = lvOf(it)[n-1];
+            setVal(it.id, (levelOf(it, cur) === n && cur === target) ? 0 : target, true);
+          });
+          seg.append(lb);
+        });
+        var wrap = document.createElement("label"); wrap.className = "amt"; wrap.htmlFor = "amt-" + it.id;
+        var inp = document.createElement("input");
+        inp.type = "number"; inp.min = "0"; inp.step = "any"; inp.inputMode = "decimal"; inp.placeholder = "0";
+        inp.id = "amt-" + it.id; inp.setAttribute("aria-label", it.name + " miktarı (" + it.unit + ")");
+        inp.addEventListener("input", function(){
+          if (isFuture()) return;
+          var n = parseFloat(String(inp.value).replace(",", "."));
+          setVal(it.id, isFinite(n) && n > 0 ? n : 0, false);
+        });
+        var u = document.createElement("span"); u.className = "u"; u.textContent = it.unit;
+        wrap.append(inp, u);
+        ctl.append(seg, wrap);
+      }
+      li.append(info, ctl);
+      ol.append(li);
+    });
+  }
+
+  function afterEdit(skipId){
+    refreshDay(skipId);
+    renderHeader();
+    if (tab === "zincir") renderChain();
+    if (tab === "ilerleme") renderProg();
+    saveLocal();
+    scheduleSync();
+  }
+  function setVal(id, n, syncInput){
+    setField(viewDate, id, n);
+    afterEdit(syncInput ? null : id);
+  }
+  function setKcal(n){
+    setField(viewDate, "kalori", n);
+    if (n > 0 && !(val(viewDate, "yemek") > 0)) setField(viewDate, "yemek", 1);
+    afterEdit("kalori");
+  }
+
+  function refreshDay(skipId){
+    var fut = isFuture();
+    ITEMS.forEach(function(it){
+      var li = document.querySelector('.row[data-id="' + it.id + '"]');
+      if (!li) return;
+      var a = val(viewDate, it.id), st = li.querySelector(".st");
+      if (it.kind === "check") {
+        li.dataset.t = a > 0 ? "c" : "0";
+        var b = $("chk-" + it.id);
+        b.setAttribute("aria-pressed", a > 0 ? "true" : "false");
+        b.disabled = fut;
+        st.textContent = a > 0 ? "1 puan" : "";
+        if (it.kcal) {
+          var kin = $("kcal-in"), kc = val(viewDate, "kalori");
+          kin.disabled = fut;
+          if (skipId !== "kalori" && document.activeElement !== kin) kin.value = kc > 0 ? String(kc) : "";
+          if (kc > 0) {
+            var diff = cfg.kcal - kc;
+            st.textContent = (a > 0 ? "1 puan · " : "") + (diff > 0 ? "Hedefin " + nf.format(diff) + " kcal altında" : diff < 0 ? "Hedefin " + nf.format(-diff) + " kcal üstünde" : "Tam hedefte");
+          } else if (a > 0) {
+            st.textContent = "1 puan · hedef " + nf.format(cfg.kcal) + " kcal";
+          }
+        }
+      } else {
+        var lvl = levelOf(it, a);
+        li.dataset.t = tkey(lvl);
+        li.querySelectorAll(".lv").forEach(function(btn){
+          btn.setAttribute("aria-pressed", String(Number(btn.dataset.l) === lvl));
+          btn.disabled = fut;
+        });
+        var inp = $("amt-" + it.id);
+        inp.disabled = fut;
+        if (it.id !== skipId && document.activeElement !== inp) inp.value = a > 0 ? String(a) : "";
+        st.textContent = lvl === 0 ? "" : (lvl === 0.5 ? "Kısmi" : TIER[lvl]) + " · " + nf.format(lvl) + " puan";
+      }
+    });
+
+    var p = pointsOf(viewDate), t = tierOf(p);
+    $("scoreNum").textContent = fut ? "–" : scoreOf(p);
+    var pill = $("tierPill");
+    pill.dataset.t = tkey(t);
+    pill.textContent = fut ? "Henüz gelmedi" : tierLabel(t);
+    $("pointsTxt").textContent = nf.format(p) + " / " + MAXP + " puan";
+    $("bar").dataset.t = tkey(t);
+    $("barFill").style.width = Math.min(100, p / MAXP * 100) + "%";
+    [1,2,3].forEach(function(n){ $("mk" + n).style.left = (TH[n] / MAXP * 100) + "%"; });
+    var ct = $("chainTxt");
+    if (fut) ct.textContent = "Bu gün henüz gelmedi.";
+    else if (t >= 1 && t < 3) ct.textContent = "Zincir bu gün için tamam. " + TIER[t + 1] + " gün seviyesine " + nf.format(TH[t + 1] - p) + " puan var.";
+    else if (t === 3) ct.textContent = "Zincir tamam, bugün maksimum seviyedesin.";
+    else ct.textContent = "Zinciri korumak için " + nf.format(TH[1] - p) + " puan daha lazım.";
+
+    var d = pd(viewDate), today = todayStr();
+    $("dTitle").textContent = viewDate === today ? "Bugün, " + d.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) : d.toLocaleDateString("tr-TR", {weekday:"long", day:"numeric", month:"long"});
+    var idx = diffDays(cfg.start, viewDate);
+    $("dSub").textContent = idx >= 0 && idx < cfg.len ? "Gün " + (idx + 1) + " / " + cfg.len + (viewDate === today ? "" : " · " + d.toLocaleDateString("tr-TR", {weekday:"long"})) : "Takip döneminin dışında";
+    $("prevDay").disabled = viewDate <= cfg.start;
+    $("nextDay").disabled = viewDate >= today;
+    $("goToday").hidden = viewDate === today;
+  }
+
+  function renderHeader(){
+    $("dayCount").textContent = "Gün " + Math.max(elapsedDays(), 0) + " / " + cfg.len;
+  }
+
+  /* ---------- streaks & chain ---------- */
+  function kept(date){ return tierOf(pointsOf(date)) >= 1; }
+  function streaks(){
+    var today = todayStr(), end = periodEnd(), last = today < end ? today : end;
+    var cur = 0, best = 0, run = 0, keptDays = 0;
+    if (today >= cfg.start) {
+      var n = diffDays(cfg.start, last);
+      for (var i = 0; i <= n; i++) {
+        var dt = addDays(cfg.start, i);
+        if (kept(dt)) { run++; keptDays++; if (run > best) best = run; } else run = 0;
+      }
+      var c = last;
+      if (c === today && !kept(c)) c = addDays(c, -1);
+      while (c >= cfg.start && kept(c)) { cur++; c = addDays(c, -1); }
+    }
+    return {cur:cur, best:best, kept:keptDays};
+  }
+  function kpi(value, label){
+    return '<div class="kpi"><b class="mono">' + value + '</b><span>' + label + '</span></div>';
+  }
+  function renderChain(){
+    var s = streaks(), el = elapsedDays();
+    $("chainKpis").innerHTML =
+      kpi(s.cur + " gün", "Şu anki zincir") +
+      kpi(s.best + " gün", "En uzun zincir") +
+      kpi(s.kept + " / " + el, "Zinciri koruduğun gün");
+
+    var cal = $("cal"), today = todayStr();
+    cal.textContent = "";
+    var off = (pd(cfg.start).getDay() + 6) % 7;
+    for (var i = 0; i < off; i++) { var e = document.createElement("span"); e.className = "cell blank"; cal.append(e); }
+    for (var j = 0; j < cfg.len; j++) {
+      (function(date, first){
+        var dd = pd(date), fut = date > today, t = tierOf(pointsOf(date));
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "cell";
+        b.dataset.t = fut ? "f" : tkey(t);
+        if (date === today) b.classList.add("today");
+        if (date === viewDate) b.classList.add("sel");
+        if (first || dd.getDate() === 1) { var sm = document.createElement("small"); sm.textContent = MONTHS[dd.getMonth()]; b.append(sm); }
+        var sp = document.createElement("span"); sp.textContent = dd.getDate(); b.append(sp);
+        b.setAttribute("aria-label", dd.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) + ": " + (fut ? "henüz gelmedi" : (t === 0 ? "hiç yapılmadı" : tierLabel(t))));
+        if (fut) b.disabled = true;
+        else b.addEventListener("click", function(){ viewDate = date; refreshDay(null); switchTab("gun"); window.scrollTo(0, 0); });
+        cal.append(b);
+      })(addDays(cfg.start, j), j === 0);
+    }
+  }
+
+  /* ---------- progress ---------- */
+  function renderProg(){
+    var el = elapsedDays(), len = cfg.len, expFrac = el / len;
+    var counts = {3:0, 2:0, 1:0, p:0, 0:0}, scoreSum = 0;
+    for (var i = 0; i < el; i++) {
+      var dt = addDays(cfg.start, i), p = pointsOf(dt), t = tierOf(p);
+      counts[tkey(t)]++; scoreSum += scoreOf(p);
+    }
+    var html = "", pctSum = 0, n = 0;
+    ITEMS.forEach(function(it){
+      var done = 0, doneDays = 0;
+      for (var i = 0; i < el; i++) { var a = val(addDays(cfg.start, i), it.id); if (a > 0) { done += a; doneDays++; } }
+      var target, pct, line1, line2, expected, kcalHtml = "";
+      if (it.kcal) {
+        var ks = 0, kd = 0;
+        for (var q = 0; q < el; q++) { var kv = val(addDays(cfg.start, q), "kalori"); if (kv > 0) { ks += kv; kd++; } }
+        var kTarget = cfg.kcal * len, kPct = ks / kTarget, kAvg = kd ? ks / kd : 0;
+        var kLine2 = kd ? "Günlük ortalama " + nf.format(Math.round(kAvg)) + " kcal (" + kd + " gün kayıt). Bu gidişle dönem sonunda ~" + nf.format(Math.round(kAvg * len)) + " kcal" : "Henüz kalori girilmedi. Günlük hedef " + nf.format(cfg.kcal) + " kcal";
+        kcalHtml = '<div class="prog"><div class="ph"><span class="nm">Kalori</span><span class="mono pct">%' + Math.round(kPct * 100) + '</span></div>' +
+          '<div class="pbar"><i style="width:' + Math.min(100, kPct * 100) + '%"></i><b style="left:' + (expFrac * 100) + '%"></b></div>' +
+          '<p class="pd mono">' + nf.format(ks) + ' kcal / ' + nf.format(kTarget) + ' kcal · kalan ' + nf.format(Math.max(kTarget - ks, 0)) + ' kcal</p>' +
+          '<p class="pd muted">' + kLine2 + '</p></div>';
+      }
+      if (it.kind === "check") {
+        target = len; pct = doneDays / target; expected = el;
+        line1 = doneDays + " / " + target + " gün · kalan " + Math.max(target - doneDays, 0) + " gün";
+        line2 = el ? "Geçen " + el + " günün " + doneDays + " tanesinde yaptın (%" + Math.round(doneDays / el * 100) + ")" : "Dönem henüz başlamadı";
+        done = doneDays;
+      } else {
+        var perDay = lvOf(it)[1], dayCount = it.alt ? Math.ceil(len / 2) : len;
+        target = perDay * dayCount; pct = done / target; expected = target * expFrac;
+        var avg = el ? done / el : 0;
+        line1 = fmtAmt(done, it.unit) + " / " + fmtAmt(target, it.unit) + " · kalan " + fmtAmt(Math.max(target - done, 0), it.unit);
+        line2 = el ? "Günlük ortalama " + nf.format(Math.round(avg * 10) / 10) + " " + it.unit + ". Bu gidişle dönem sonunda ~" + fmtAmt(Math.round(avg * len), it.unit) : "Dönem henüz başlamadı";
+      }
+      var ratio = expected > 0 ? done / expected : 1;
+      var s = el === 0 ? "" : ratio >= 1 ? "good" : ratio >= 0.7 ? "mid" : "bad";
+      pctSum += Math.min(pct, 1); n++;
+      html += '<div class="prog"><div class="ph"><span class="nm">' + it.name + '</span><span class="mono pct">%' + Math.round(pct * 100) + '</span></div>' +
+        '<div class="pbar" data-s="' + s + '"><i style="width:' + Math.min(100, pct * 100) + '%"></i><b style="left:' + (expFrac * 100) + '%"></b></div>' +
+        '<p class="pd mono">' + line1 + '</p><p class="pd muted">' + line2 + '</p></div>' + kcalHtml;
+    });
+    $("progList").innerHTML = html;
+    $("progKpis").innerHTML =
+      kpi(el + " / " + len, "Geçen gün") +
+      kpi(el ? Math.round(scoreSum / el) : 0, "Ortalama günlük puan") +
+      kpi("%" + Math.round(pctSum / n * 100), "Genel hedef ilerlemesi") +
+      '<div class="kpi" style="grid-column:1/-1"><span>Gün dağılımı</span><div class="counts">' +
+        '<span><i class="sw t3"></i>Boş ' + counts[3] + '</span>' +
+        '<span><i class="sw t2"></i>Normal ' + counts[2] + '</span>' +
+        '<span><i class="sw t1"></i>Yoğun ' + counts[1] + '</span>' +
+        '<span><i class="sw p"></i>Kısmi ' + counts.p + '</span>' +
+        '<span><i class="sw"></i>Hiç ' + counts[0] + '</span></div></div>';
+  }
+
+  /* ---------- settings ---------- */
+  function buildSettings(){
+    var tb = $("lvTable");
+    tb.textContent = "";
+    ITEMS.forEach(function(it){
+      if (it.kind === "check") return;
+      var tr = document.createElement("tr");
+      var td0 = document.createElement("td"); td0.textContent = it.name; tr.append(td0);
+      [0,1,2].forEach(function(k){
+        var td = document.createElement("td");
+        var inp = document.createElement("input");
+        inp.type = "number"; inp.min = "0"; inp.step = "any"; inp.inputMode = "decimal";
+        inp.id = "lvset-" + it.id + "-" + k;
+        inp.setAttribute("aria-label", it.name + " " + TIER[k+1] + " değeri");
+        inp.addEventListener("change", function(){ onLvChange(it); });
+        td.append(inp); tr.append(td);
+      });
+      var tdu = document.createElement("td"); tdu.className = "muted"; tdu.textContent = it.unit; tr.append(tdu);
+      tb.append(tr);
+    });
+    $("rules").innerHTML =
+      "<li>Seviyeli maddeler: yoğun 1, normal 2, boş 3 puan. Yoğun değerin altında kalırsa kısmi, 0,5 puan.</li>" +
+      "<li>Sabah bakımı, yemek takibi ve akşam planı: yapıldıysa 1 puan.</li>" +
+      "<li>Kalori miktarı puanı etkilemez, yemek takibinde puanı kaydı tutmak getirir. Kalori girdiğinde yemek takibi kendiliğinden yapıldı sayılır.</li>" +
+      "<li>Etsy / trading gün aşırı olduğu için gün seviyesine sayılmıyor, puanı bonus olarak ekleniyor.</li>" +
+      "<li>Gün seviyesi: " + TH[1] + " puan yoğun, " + TH[2] + " puan normal, " + TH[3] + " puan boş gün. En yüksek puan " + MAXP + ".</li>" +
+      "<li>Günün puanı 100 üzerinden gösteriliyor. Zincir, en az yoğun gün seviyesine ulaşılan günlerde devam ediyor.</li>";
+  }
+  function fillSettings(){
+    var act = document.activeElement;
+    if (act !== $("setStart")) $("setStart").value = cfg.start;
+    if (act !== $("setLen")) $("setLen").value = cfg.len;
+    if (act !== $("setKcalTarget")) $("setKcalTarget").value = cfg.kcal;
+    ITEMS.forEach(function(it){
+      if (it.kind === "check") return;
+      var l = lvOf(it);
+      [0,1,2].forEach(function(k){ var inp = $("lvset-" + it.id + "-" + k); if (inp !== act) { inp.value = l[k]; inp.removeAttribute("aria-invalid"); } });
+    });
+  }
+  function onLvChange(it){
+    var vals = [0,1,2].map(function(k){ return parseFloat(String($("lvset-" + it.id + "-" + k).value).replace(",", ".")); });
+    var ok = vals.every(function(v){ return isFinite(v) && v > 0; }) && vals[0] <= vals[1] && vals[1] <= vals[2];
+    [0,1,2].forEach(function(k){ $("lvset-" + it.id + "-" + k).setAttribute("aria-invalid", ok ? "false" : "true"); });
+    if (!ok) { $("lvErr").textContent = it.name + ": değerler sıfırdan büyük olmalı ve yoğun ≤ normal ≤ boş sırasında olmalı."; return; }
+    $("lvErr").textContent = "";
+    cfg.lv = Object.assign({}, cfg.lv); cfg.lv[it.id] = vals;
+    markCfg(); buildRows(); renderAll();
+  }
+
+  /* ---------- tabs & wiring ---------- */
+  function switchTab(t){
+    tab = t;
+    ["gun","zincir","ilerleme","ayarlar"].forEach(function(k){
+      $("v-" + k).hidden = k !== t;
+      $("tab-" + k).setAttribute("aria-selected", String(k === t));
+    });
+    if (t === "zincir") renderChain();
+    if (t === "ilerleme") renderProg();
+    if (t === "ayarlar") { fillSettings(); renderPair(); loadPair(); }
+    lsSet(TAB_LS, t);
+  }
+  function renderAll(){
+    renderHeader();
+    refreshDay(null);
+    if (tab === "zincir") renderChain();
+    if (tab === "ilerleme") renderProg();
+    if (tab === "ayarlar") fillSettings();
+  }
+
+  document.querySelectorAll(".tabs button").forEach(function(b){ b.addEventListener("click", function(){ switchTab(b.dataset.tab); }); });
+  $("prevDay").addEventListener("click", function(){ viewDate = addDays(viewDate, -1); refreshDay(null); });
+  $("nextDay").addEventListener("click", function(){ if (viewDate < todayStr()) { viewDate = addDays(viewDate, 1); refreshDay(null); } });
+  $("goToday").addEventListener("click", function(){ viewDate = todayStr(); refreshDay(null); });
+  $("setStart").addEventListener("change", function(){
+    var v = $("setStart").value;
+    if (!DATE_RE.test(v)) return;
+    cfg.start = v; markCfg(); renderAll();
+  });
+  $("setLen").addEventListener("change", function(){
+    var n = Math.round(Number($("setLen").value));
+    if (!(n >= 7 && n <= 365)) { $("setLen").value = cfg.len; return; }
+    cfg.len = n; markCfg(); renderAll();
+  });
+  $("setKcalTarget").addEventListener("change", function(){
+    var n = Math.round(Number($("setKcalTarget").value));
+    if (!(n >= 500 && n <= 6000)) { $("setKcalTarget").value = cfg.kcal; return; }
+    cfg.kcal = n; markCfg(); renderAll();
+  });
+  $("resetLv").addEventListener("click", function(){
+    cfg.lv = {}; $("lvErr").textContent = "";
+    markCfg(); buildRows(); renderAll(); fillSettings();
+  });
+
+  $("pairBtn").addEventListener("click", function(){
+    var addr = FROM_PC ? syncConf.addr : normAddr($("pcAddr").value), key = normKey($("pcKey").value);
+    var hint = $("pairHint");
+    hint.textContent = !FROM_PC && !addr ? "PC adresini PC'deki Ayarlar'da yazdığı gibi gir, örneğin 192.168.1.20:8765." :
+      key.length < 8 ? "Kodu PC'deki Ayarlar'da yazdığı gibi gir." : "";
+    hint.hidden = !hint.textContent;
+    if (hint.textContent) return;
+    syncConf = {addr:addr, key:key, ok:false, last:0};
+    saveSyncConf();
+    lastErr = null; burst = 0;
+    sync();
+  });
+  $("copyLink").addEventListener("click", function(){
+    var inp = $("pairLink"), btn = $("copyLink");
+    function done(){ btn.textContent = "Kopyalandı"; setTimeout(function(){ btn.textContent = "Kopyala"; }, 1500); }
+    function fallback(){ inp.focus(); inp.select(); try { if (document.execCommand("copy")) done(); } catch(e) {} }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).then(done, fallback);
+    else fallback();
+  });
+
+  var lastDay = todayStr();
+  function checkDayRollover(){
+    var t = todayStr();
+    if (t !== lastDay) { if (viewDate === lastDay) viewDate = t; lastDay = t; renderAll(); }
+  }
+  setInterval(function(){
+    checkDayRollover();
+    if (document.visibilityState === "visible" && syncReady() && Date.now() >= nextAutoAt) sync();
+  }, 10000);
+  document.addEventListener("visibilitychange", function(){
+    if (document.visibilityState === "visible") { checkDayRollover(); if (syncReady()) sync(); }
+    else if (pendingCount() && syncReady()) sync();
+  });
+  window.addEventListener("online", function(){ if (syncReady()) sync(); });
+
+  loadLocal();
+  loadSyncConf();
+  buildRows();
+  buildSettings();
+  var savedTab = lsGet(TAB_LS);
+  if (savedTab && $("v-" + savedTab)) tab = savedTab;
+  switchTab(tab);
+  renderAll();
+  initSync();
+  /* keeps the app opening without a connection once it has been loaded */
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || ON_PC)) {
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
