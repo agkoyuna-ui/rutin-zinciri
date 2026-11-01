@@ -39,7 +39,8 @@ const MIME = {
 };
 
 /* ---------- veri ---------- */
-let data = { days: {}, cfg: null, cfgT: 0 };
+/* resetAt: kayıtların silindiği an; bundan eski düzenlemeler hiçbir cihazdan geri kabul edilmez */
+let data = { days: {}, cfg: null, cfgT: 0, resetAt: 0 };
 let saveTimer = null;
 
 function plain(x) { return x && typeof x === "object" && !Array.isArray(x) ? x : {}; }
@@ -72,6 +73,7 @@ function loadData() {
   for (const date of Object.keys(days)) if (DATE_RE.test(date)) data.days[date] = cleanDay(days[date]);
   if (d.cfg && typeof d.cfg === "object" && !Array.isArray(d.cfg)) data.cfg = d.cfg;
   data.cfgT = okStamp(d.cfgT) ? d.cfgT : 0;
+  data.resetAt = okStamp(d.resetAt) ? d.resetAt : 0;
   try { fs.copyFileSync(DATA_FILE, BACKUP_FILE); } catch (e) {}
 }
 
@@ -79,7 +81,7 @@ function saveNow() {
   clearTimeout(saveTimer); saveTimer = null;
   const sorted = {};
   for (const date of Object.keys(data.days).sort()) sorted[date] = data.days[date];
-  const json = JSON.stringify({ days: sorted, cfg: data.cfg, cfgT: data.cfgT });
+  const json = JSON.stringify({ days: sorted, cfg: data.cfg, cfgT: data.cfgT, resetAt: data.resetAt });
   const tmp = DATA_FILE + ".tmp";
   try {
     fs.writeFileSync(tmp, json);
@@ -102,6 +104,7 @@ function mergeIncoming(body) {
     for (const f of Object.keys(v)) {
       if (!FIELD_RE.test(f) || !okAmount(v[f])) continue;
       const t = okStamp(ft[f]) ? ft[f] : 0;
+      if (t < data.resetAt) continue;
       if (!cur) {
         if (Object.keys(data.days).length >= MAX_DAYS) break;
         cur = data.days[date] = { v: {}, ft: {}, t: 0 };
@@ -117,7 +120,7 @@ function mergeIncoming(body) {
     const cfgT = okStamp(body.cfgT) ? body.cfgT : 0;
     let size = Infinity;
     try { size = JSON.stringify(body.cfg).length; } catch (e) {}
-    if (cfgT > data.cfgT && size < 20000) { data.cfg = body.cfg; data.cfgT = cfgT; changed++; }
+    if (cfgT > data.cfgT && cfgT >= data.resetAt && size < 20000) { data.cfg = body.cfg; data.cfgT = cfgT; changed++; }
   }
   if (changed) saveSoon();
   return changed;
