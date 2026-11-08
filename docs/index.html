@@ -210,6 +210,8 @@ html.in-app body{padding-bottom:0}
 .levels button small{font:500 11px var(--f-mono);color:var(--muted)}
 .seg3 button[aria-checked="true"],.levels button[aria-checked="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .levels button[aria-checked="true"] small{color:inherit;opacity:.8}
+.scoreline{display:flex;align-items:baseline;gap:6px}
+.of{font-size:15px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -242,7 +244,7 @@ html.in-app body{padding-bottom:0}
 
     <div class="card" id="scoreCard">
       <div class="score-top">
-        <div><div class="lbl">Günün puanı</div><div class="big mono" id="scoreNum">0</div></div>
+        <div><div class="lbl">Günün puanı</div><div class="scoreline"><span class="big mono" id="scoreNum">0</span><span class="of mono">/ 100</span></div></div>
         <div class="score-side">
           <span id="tierPill" class="pill" data-t="0">Henüz başlamadın</span>
         </div>
@@ -319,6 +321,7 @@ html.in-app body{padding-bottom:0}
         <div class="field">Önem derecesi
           <div class="levels" role="radiogroup" aria-label="Önem derecesi" id="levelGroup"></div>
         </div>
+        <p class="muted small" style="margin:0">Önem derecesi, bu işin günün 100 puanından aldığı payı belirler.</p>
 
         <p class="err" id="f-err"></p>
         <div class="btnrow">
@@ -354,9 +357,9 @@ html.in-app body{padding-bottom:0}
   var DATE_RE = /^\d{4}-\d{2}-\d{2}$/, FIELD_RE = /^[a-z0-9_]{1,32}$/;
   /* the Android app adds this to its user agent and serves this page from inside the app */
   var IN_APP = /\bRutinZinciriApp\//.test(navigator.userAgent);
-  /* importance: points for a done check, for reaching the daily goal, or for hitting the target */
+  /* importance: a task's share of the day's 100 points grows with its weight */
   var LEVELS = [
-    {name:"Çok düşük", pts:10}, {name:"Düşük", pts:20}, {name:"Orta", pts:30}, {name:"Yüksek", pts:40}, {name:"Çok yüksek", pts:50}
+    {name:"Çok düşük", w:1}, {name:"Düşük", w:2}, {name:"Orta", w:3}, {name:"Yüksek", w:4}, {name:"Çok yüksek", w:5}
   ];
   var KINDS = {check:"Tikli", amt:"Süreli", target:"Hedefe yakınlık"};
   var TIER = ["", "Yoğun", "Normal", "Boş"];
@@ -418,17 +421,15 @@ html.in-app body{padding-bottom:0}
     return out;
   }
   function items(){ return cfg.items; }
-  function levelPts(it){ return LEVELS[it.level - 1].pts; }
-  function goalDay(){ return items().reduce(function(s, it){ return s + levelPts(it); }, 0); }
-  function roundTh(x){ return Math.max(5, Math.round(x / 5) * 5); }
-  /* chain at 60 %, normal day at 100 %, free day at 160 % of a day where every task is on target */
-  function thresholds(){
-    var g = goalDay(), t = [roundTh(g * 0.6), roundTh(g), roundTh(g * 1.6)];
-    if (t[1] <= t[0]) t[1] = t[0] + 5;
-    if (t[2] <= t[1]) t[2] = t[1] + 5;
-    return t;
+  function weight(it){ return LEVELS[it.level - 1].w; }
+  /* a day with every task done, on its goal or on its target is worth exactly 100 points */
+  function share(it){
+    var total = items().reduce(function(s, x){ return s + weight(x); }, 0);
+    return total ? 100 * weight(it) / total : 0;
   }
-  var TH = [5, 10, 15];
+  /* chain at 60, normal day at 100 (everything done), free day at 150 with extra over the goals */
+  function thresholds(){ return [60, 100, 150]; }
+  var TH = thresholds();
   function th(i){ return TH[i - 1]; }
   function barMax(){ return TH[2] * 1.25; }
 
@@ -467,16 +468,18 @@ html.in-app body{padding-bottom:0}
 
   /* ---------- scoring ---------- */
   function val(date, id){ var d = days[date]; return d && typeof d.v[id] === "number" ? d.v[id] : 0; }
-  function itemPoints(it, date){
-    var a = val(date, it.id), p = levelPts(it);
+  /* how much of a task is done: 1 means done, on the daily goal or on the target */
+  function fraction(it, date){
+    var a = val(date, it.id);
     if (!(a > 0)) return 0;
-    if (it.kind === "check") return p;
-    /* reaching the daily goal earns the importance points; more keeps adding in proportion */
-    if (it.kind === "amt") return p * a / it.goal;
-    /* full points at the target, none at or under `low`, below zero past `high` */
-    if (a <= it.target) return Math.max(0, p * (a - it.low) / (it.target - it.low));
-    return p * (1 - (a - it.target) / (it.high - it.target));
+    if (it.kind === "check") return 1;
+    /* past the daily goal the extra keeps counting, so a day can go over 100 */
+    if (it.kind === "amt") return a / it.goal;
+    /* none at or under `low`, full at the target, below zero past `high` */
+    if (a <= it.target) return Math.max(0, (a - it.low) / (it.target - it.low));
+    return 1 - (a - it.target) / (it.high - it.target);
   }
+  function itemPoints(it, date){ return share(it) * fraction(it, date); }
   function pointsOf(date){
     var p = 0;
     items().forEach(function(it){ p += itemPoints(it, date); });
@@ -509,7 +512,7 @@ html.in-app body{padding-bottom:0}
     if (unit === "dk" && n >= 120) s += " (" + nf.format(Math.round(n / 6) / 10) + " sa)";
     return s;
   }
-  function levelTxt(it){ return LEVELS[it.level - 1].name + " önem, " + levelPts(it) + " puan"; }
+  function levelTxt(it){ return LEVELS[it.level - 1].name + " önem, tam günün " + nf.format(round1(share(it))) + " puanı"; }
   function shortInfo(it){
     if (it.kind === "check") return "";
     if (it.kind === "amt") return "Günlük hedef " + fmtAmt(it.goal, it.unit);
@@ -679,7 +682,7 @@ html.in-app body{padding-bottom:0}
     }
     var html = "", pctSum = 0, n = 0;
     items().forEach(function(it){
-      var done = 0, doneDays = 0, pts = 0, lp = levelPts(it);
+      var done = 0, doneDays = 0, pts = 0, lp = share(it);
       for (var i = 0; i < elapsed; i++) {
         var dt = addDays(cfg.start, i), a = val(dt, it.id);
         if (a > 0) { done += a; doneDays++; }
@@ -691,7 +694,7 @@ html.in-app body{padding-bottom:0}
         var avgVal = doneDays ? done / doneDays : 0;
         target = lp * len; done = Math.max(0, pts); pct = done / target; expected = lp * elapsed;
         line1 = doneDays ? "Günlük ortalama " + fmtAmt(avgVal, it.unit) + " · " + doneDays + " gün kayıt" : "Henüz kayıt yok. Hedef " + fmtAmt(it.target, it.unit);
-        line2 = ptsTxt + " · her gün hedefte olsan " + nf.format(lp * len) + " puan";
+        line2 = ptsTxt + " · her gün hedefte olsan " + nf.format(round1(lp * len)) + " puan";
       } else if (it.kind === "check") {
         target = len; pct = doneDays / target; expected = elapsed;
         line1 = doneDays + " / " + target + " gün · kalan " + Math.max(target - doneDays, 0) + " gün";
@@ -772,16 +775,16 @@ html.in-app body{padding-bottom:0}
     $("addItem").hidden = !$("itemForm").hidden || items().length >= MAX_ITEMS;
   }
   var KIND_HELP = {
-    check: "Yaptığın gün işaretlersin, önem derecesinin puanını alırsın.",
-    amt: "Ne kadar yaptığını yazarsın. Günlük hedefe ulaşınca önem derecesinin puanını alırsın; fazlası daha çok puan getirir, hedefin iki katı iki kat puan eder.",
-    target: "Kalori gibi işler için. Hedefe yaklaştıkça puan artar, hedefte önem derecesinin puanını alırsın. Alt sınırda ve altında puan 0 olur; üst sınırı geçince puan eksiye düşer."
+    check: "Yaptığın gün işaretlersin ve bu işin payının tamamını alırsın.",
+    amt: "Ne kadar yaptığını yazarsın. Günlük hedefe ulaşınca payının tamamını alırsın; hedefi geçersen fazlası ek puan olur.",
+    target: "Kalori gibi işler için. Tam hedefte payının tamamını alırsın, hedeften uzaklaştıkça azalır. Alt sınırda ve altında 0 olur; üst sınırı geçince eksiye düşer."
   };
   function buildLevelButtons(){
     var g = $("levelGroup");
     LEVELS.forEach(function(l, i){
       var b = el("button");
       b.type = "button"; b.setAttribute("role", "radio"); b.dataset.level = String(i + 1);
-      b.append(el("span", null, l.name), el("small", null, l.pts + " puan"));
+      b.append(el("span", null, l.name), el("small", null, "×" + l.w));
       b.addEventListener("click", function(){ formLevel = i + 1; paintForm(); });
       g.append(b);
     });
@@ -851,13 +854,11 @@ html.in-app body{padding-bottom:0}
     var ul = $("rules");
     ul.textContent = "";
     [
-      "Önem dereceleri: " + LEVELS.map(function(l){ return l.name + " " + l.pts; }).join(", ") + " puan.",
-      "Tikli işler: yaptığın gün önem derecesinin puanı.",
-      "Süreli işler: günlük hedefe ulaşınca önem derecesinin puanı. Fazlası oranında artar; hedefin yarısı yarım, iki katı iki kat puan.",
-      "Hedefe yakınlık: hedefte önem derecesinin puanı. Alt sınırda ve altında 0; üst sınırı geçince eksiye iner ve günün puanından düşer.",
-      items().length
-        ? "Bütün işlerin hedefte olduğu bir gün " + nf.format(goalDay()) + " puan eder. Zincir bunun %60'ında (" + nf.format(th(1)) + " puan) devam eder; " + nf.format(th(2)) + " puan normal, " + nf.format(th(3)) + " puan boş gün seviyesi."
-        : "Zincir eşikleri eklediğin işlere göre kendiliğinden hesaplanır."
+      "Bütün işlerini tamamladığın gün tam 100 puan alırsın: tikliler işaretli, süreliler günlük hedefte, hedefe yakınlıklar tam hedefte.",
+      "Önem derecesi, bir işin bu 100 puandan aldığı payı belirler. Çok yüksek önemli bir iş, çok düşük önemli bir işin 5 katı pay alır.",
+      "Süreli işte günlük hedefi geçersen fazlası ek puan olur ve gün 100'ü geçebilir. Hedefin yarısında payının yarısını alırsın.",
+      "Hedefe yakınlıkta hedeften uzaklaştıkça pay azalır. Alt sınırda ve altında 0 olur; üst sınırı geçince eksiye iner ve günün puanından düşer.",
+      "Zincir " + th(1) + " puanda devam eder; " + th(2) + " puan normal, " + th(3) + " puan boş gün seviyesi."
     ].forEach(function(t){ ul.append(el("li", null, t)); });
   }
   function fillSettings(){

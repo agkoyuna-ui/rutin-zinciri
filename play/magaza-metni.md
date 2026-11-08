@@ -37,11 +37,11 @@ Uygulama boş başlar. Takip etmek istediğin her şeyi iş olarak ekle:
 • Süreli: kitap sayfası, yürüyüş dakikası, çalışma saati… Birimi ve günlük hedefi sen yazarsın.
 • Hedefe yakınlık: kalori gibi, hedefe yaklaştıkça puanı artan, sınırı aşınca düşen işler.
 
-Önem derecesini seç, puanı uygulama versin
-Her işe beş önem derecesinden birini ver: çok düşük, düşük, orta, yüksek, çok yüksek. Hedefe ulaştığında o derecenin puanını alırsın; süreli işlerde hedefin üstüne çıktıkça puan artmaya devam eder.
+Bütün işlerini bitir, 100 puanı al
+Bütün işlerini tamamladığın gün tam 100 puan alırsın. Her işe beş önem derecesinden birini ver: çok düşük, düşük, orta, yüksek, çok yüksek. Önemli işler bu 100 puandan daha büyük pay alır. Süreli işlerde günlük hedefi geçersen fazlası ek puan olur.
 
 Zincirini koru
-Günün puanı eşiği geçtiğinde zincir devam eder. Eşikler eklediğin işlere göre kendiliğinden ayarlanır. Takvimde her gün rengiyle görünür: yoğun, normal ya da boş gün seviyesi. Şu anki ve en uzun zincirini takip et.
+Günün puanı 60'ı geçtiğinde zincir devam eder. Takvimde her gün rengiyle görünür: yoğun, normal ya da boş gün seviyesi. Şu anki ve en uzun zincirini takip et.
 
 İlerlemeni gör
 Dönem boyunca her işte hedefinin neresinde olduğunu, günlük ortalamanı ve toplam puanını gör. Dönemin süresini ve başlangıcını sen seç.
