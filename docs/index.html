@@ -98,6 +98,9 @@ section{display:flex;flex-direction:column;gap:14px}
 .bar[data-t="3"] .fill{background:var(--t3)}
 .mk{position:absolute;top:-22px;transform:translateX(-50%);font:500 11px var(--f-mono);color:var(--muted);white-space:nowrap}
 .mk::after{content:"";position:absolute;left:50%;top:18px;width:2px;height:14px;margin-left:-1px;background:var(--ink);opacity:.35}
+/* the free-day mark sits on the bar's end, so its label hugs the right edge and needs no tick */
+#mk3{transform:translateX(-100%)}
+#mk3::after{display:none}
 .chaintxt{margin:0;font-size:13px;color:var(--muted)}
 
 .items{list-style:none;margin:0;padding:0 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
@@ -431,7 +434,8 @@ html.in-app body{padding-bottom:0}
   function thresholds(){ return [40, 70, 100]; }
   var TH = thresholds();
   function th(i){ return TH[i - 1]; }
-  function barMax(){ return TH[2] * 1.25; }
+  /* the bar is full on a free day; extra points beyond it keep it full */
+  function barMax(){ return TH[2]; }
 
   /* ---------- storage on this device ---------- */
   function lsGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
