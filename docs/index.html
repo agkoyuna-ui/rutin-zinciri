@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Rutin Zinciri</title>
+<script>/* the Android app already keeps the page clear of the system bars */if (/\bRutinZinciriApp\//.test(navigator.userAgent)) document.documentElement.classList.add("in-app");</script>
 <meta name="theme-color" content="#F2F3EF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101311" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -119,7 +120,7 @@ section{display:flex;flex-direction:column;gap:14px}
 .amt input{width:58px;border:0;background:transparent;color:var(--ink);font:500 16px var(--f-mono);text-align:right;padding:0}
 .amt input:focus{outline:none}
 .amt:focus-within{outline:2px solid var(--ink);outline-offset:1px}
-.amt .u{font-size:13px;color:var(--muted);min-width:34px}
+.amt .u{font-size:13px;color:var(--muted);min-width:46px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chk{appearance:none;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-weight:600;font-size:14px;cursor:pointer}
 .chk .box{width:18px;height:18px;border:2px solid var(--muted);border-radius:5px;display:inline-grid;place-items:center}
 .chk[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -193,6 +194,29 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
 .kv{margin:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .kv b{color:var(--ink);font-weight:500}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+a{color:var(--ink);text-underline-offset:3px}
+html.in-app .top{padding-top:0}
+html.in-app body{padding-bottom:0}
+.field input[type="text"]{font-family:var(--f-body)}
+.field select{height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);padding:0 10px;font:500 16px var(--f-body);width:100%}
+.ilist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.irow{display:flex;align-items:center;gap:8px 10px;padding-block:10px;border-bottom:1px solid var(--line)}
+.irow:last-child{border-bottom:0}
+.irow .info{flex:1;min-width:0}
+.acts{display:flex;gap:4px;flex:none;align-items:center}
+.mini{appearance:none;min-width:40px;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-weight:600;font-size:13px;cursor:pointer}
+.mini:disabled{opacity:.35;cursor:default}
+.mini.danger{color:var(--t1);border-color:var(--t1)}
+.iform{border:1px solid var(--line);border-radius:var(--r);padding:14px;background:var(--surface-2)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.btnrow .btn{align-self:auto}
+.emptyrow{padding-block:16px;color:var(--muted);font-size:14px}
+details.sync-d summary{cursor:pointer;font-family:var(--f-display);font-size:17px;font-weight:600;list-style-position:outside}
+details.sync-d[open] summary{margin-bottom:12px}
+@media (max-width:440px){
+  .irow{flex-wrap:wrap}
+  .acts{width:100%;justify-content:flex-end}
+}
 </style>
 </head>
 <body>
@@ -203,7 +227,7 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       <h1>Rutin Zinciri</h1>
       <div class="meta">
         <span id="dayCount" class="mono">Gün 1 / 90</span>
-        <span id="sync" class="sync" data-s="local"><i></i><span id="syncTxt">Sadece bu cihaz</span></span>
+        <span id="sync" class="sync" data-s="local" hidden><i></i><span id="syncTxt"></span></span>
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Bölümler">
@@ -250,113 +274,156 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       <div class="cal-head" aria-hidden="true"><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></div>
       <div class="cal" id="cal"></div>
       <div class="legend">
-        <span><i class="sw t3"></i>Boş gün (400+)</span>
-        <span><i class="sw t2"></i>Normal gün (250+)</span>
-        <span><i class="sw t1"></i>Yoğun gün (150+)</span>
-        <span><i class="sw p"></i>150'den az</span>
+        <span><i class="sw t3"></i><span id="lg3">Boş gün</span></span>
+        <span><i class="sw t2"></i><span id="lg2">Normal gün</span></span>
+        <span><i class="sw t1"></i><span id="lg1">Yoğun gün</span></span>
+        <span><i class="sw p"></i><span id="lgp">Eşiğin altında</span></span>
         <span><i class="sw"></i>Hiç yapılmadı</span>
         <span><i class="sw f"></i>Gelecek</span>
       </div>
     </div>
-    <p class="note">Zincir, puanın en az 150 olduğu günlerde devam eder. Bir güne tıklayıp o günü düzenleyebilirsin.</p>
+    <p class="note" id="chainNote"></p>
   </section>
 
   <section id="v-ilerleme" role="tabpanel" aria-labelledby="tab-ilerleme" hidden>
     <div class="kpis" id="progKpis"></div>
     <div class="card">
       <h2>Dönem hedefine göre</h2>
-      <p class="muted small" style="margin:4px 0 0">Hedef, her maddenin Ayarlar'daki günlük hedefi ile dönemdeki gün sayısının çarpımı. Çubuktaki ince çizgi bugüne kadar olman gereken yeri gösteriyor.</p>
+      <p class="muted small" style="margin:4px 0 0">Hedef, her maddenin günlük hedefi ile dönemdeki gün sayısının çarpımı. Çubuktaki ince çizgi bugüne kadar olman gereken yeri gösteriyor.</p>
       <div id="progList"></div>
     </div>
   </section>
 
   <section id="v-ayarlar" role="tabpanel" aria-labelledby="tab-ayarlar" hidden>
     <div class="card stack">
-      <h2>Telefon ve PC</h2>
-      <p class="syncline"><span id="sync2" class="sync" data-s="local"><i></i></span><span id="syncMsg"></span></p>
-
-      <div id="pcBlock" class="stack" hidden>
-        <p class="muted small" style="margin:0">Veriler bu bilgisayarda duruyor. Telefon evdeki Wi-Fi'ye bağlıyken ve bu program açıkken ikisi kendiliğinden eşitlenir. Dışarıdayken telefona girdiklerin telefonda bekler, eve gelince gönderilir.</p>
-        <div id="pairSteps" class="stack">
-          <h3>Telefonu bağla</h3>
-          <ol class="steps">
-            <li>Telefon bu bilgisayarla aynı Wi-Fi'de olsun.</li>
-            <li>Bu bağlantıyı telefonuna gönder (örneğin WhatsApp'ta kendine) ve Chrome'da aç. Bağlantıyı başkasıyla paylaşma.
-              <div class="copyrow"><input type="text" id="pairLink" readonly aria-label="Eşleştirme bağlantısı"><button type="button" class="btn" id="copyLink">Kopyala</button></div>
-            </li>
-            <li>Chrome "yerel ağdaki cihazlara bağlanmak istiyor" diye sorarsa İzin ver'e bas.</li>
-            <li>Üstte "Senkron açık" yazınca Chrome menüsünden "Ana ekrana ekle"yi seç.</li>
-          </ol>
-          <p class="kv">Elle girmek için: PC adresi <b id="pairAddr" class="mono">–</b>, kod <b id="pairKey" class="mono">–</b></p>
-          <p class="kv">Bağlantı telefonda çalışmazsa telefonda şunu aç (sadece evde çalışır): <b id="lanLink" class="mono">–</b></p>
-        </div>
-        <p id="noLan" class="err" hidden>Bu bilgisayar şu an bir ağa bağlı görünmüyor. Wi-Fi'ye bağlanınca telefonu bağlama adımları burada çıkar.</p>
-      </div>
-
-      <div id="phoneBlock" class="stack" hidden>
-        <p class="muted small" style="margin:0">Veriler evdeki PC'de duruyor. Bu cihaz PC ile aynı Wi-Fi'deyken kendiliğinden eşitlenir. Dışarıdayken girdiklerin burada bekler, eve gelince gönderilir.</p>
+      <h2>Maddeler</h2>
+      <p class="muted small" style="margin:0">Her gün takip ettiğin şeyler. Puanı, yaptığın miktar ve maddeye verdiğin birim puanı belirler.</p>
+      <ul class="ilist" id="itemList"></ul>
+      <div id="itemForm" class="stack iform" hidden>
+        <h3 id="formTitle">Yeni madde</h3>
         <div class="fields">
-          <label class="field wide" for="pcAddr" id="pcAddrField">PC adresi<input type="text" id="pcAddr" inputmode="url" placeholder="192.168.1.20:8765" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
-          <label class="field" for="pcKey">Kod<input type="text" id="pcKey" placeholder="abcde-fghjk" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+          <label class="field wide" for="f-name">Ad<input type="text" id="f-name" maxlength="40" placeholder="Örneğin Yürüyüş" autocomplete="off"></label>
+          <label class="field wide" for="f-kind">Tür
+            <select id="f-kind">
+              <option value="amt">Miktar (dakika, sayfa, adet…)</option>
+              <option value="check">Yapıldı / yapılmadı</option>
+              <option value="target">Hedefe yakınlık (kalori gibi)</option>
+            </select>
+          </label>
         </div>
-        <button type="button" class="btn primary" id="pairBtn">Bağlan</button>
-        <p id="pairHint" class="err" hidden></p>
-        <p class="muted small" style="margin:0">Adresi ve kodu PC'de Rutin Zinciri'ni açınca Ayarlar bölümünde görürsün.</p>
+        <div class="fields">
+          <label class="field" for="f-unit" data-k="amt target">Birim<input type="text" id="f-unit" maxlength="12" placeholder="dk" autocomplete="off"></label>
+          <label class="field" for="f-rate" data-k="amt">Birim başına puan<input type="number" id="f-rate" min="0" step="any" inputmode="decimal" placeholder="1"></label>
+          <label class="field" for="f-goal" data-k="amt">Günlük hedef<input type="number" id="f-goal" min="0" step="any" inputmode="decimal" placeholder="30"></label>
+          <label class="field" for="f-pts" data-k="check">Puan<input type="number" id="f-pts" min="0" step="any" inputmode="decimal" placeholder="5"></label>
+          <label class="field" for="f-target" data-k="target">Hedef<input type="number" id="f-target" min="0" step="any" inputmode="decimal" placeholder="1500"></label>
+          <label class="field" for="f-max" data-k="target">Hedefteki puan<input type="number" id="f-max" min="0" step="any" inputmode="decimal" placeholder="50"></label>
+          <label class="field" for="f-low" data-k="target">Bunun altında 0 puan<input type="number" id="f-low" min="0" step="any" inputmode="decimal" placeholder="500"></label>
+          <label class="field" for="f-high" data-k="target">Bunun üstünde eksi puan<input type="number" id="f-high" min="0" step="any" inputmode="decimal" placeholder="2000"></label>
+        </div>
+        <label class="field" for="f-hint">Açıklama (isteğe bağlı)<input type="text" id="f-hint" maxlength="60" placeholder="Örneğin Her öğün" autocomplete="off"></label>
+        <p class="muted small" id="f-help" style="margin:0"></p>
+        <p class="err" id="f-err"></p>
+        <div class="btnrow">
+          <button type="button" class="btn primary" id="f-save">Kaydet</button>
+          <button type="button" class="btn" id="f-cancel">Vazgeç</button>
+        </div>
       </div>
+      <button type="button" class="btn" id="addItem">Madde ekle</button>
     </div>
+
     <div class="card stack">
-      <h2>Dönem ve kalori</h2>
+      <h2>Zincir eşikleri</h2>
+      <p class="muted small" style="margin:0">Bir günün zinciri sürdürmesi için gereken puan ve gün seviyeleri.</p>
+      <div class="fields">
+        <label class="field" for="th1">Zincir (yoğun gün)<input type="number" id="th1" min="1" step="1" inputmode="numeric"></label>
+        <label class="field" for="th2">Normal gün<input type="number" id="th2" min="1" step="1" inputmode="numeric"></label>
+        <label class="field" for="th3">Boş gün<input type="number" id="th3" min="1" step="1" inputmode="numeric"></label>
+      </div>
+      <p class="muted small" id="thHelp" style="margin:0"></p>
+      <p class="err" id="thErr"></p>
+      <button type="button" class="btn" id="thAuto">Maddelerime göre ayarla</button>
+    </div>
+
+    <div class="card stack">
+      <h2>Dönem</h2>
       <div class="fields">
         <label class="field" for="setStart">Başlangıç tarihi<input type="date" id="setStart"></label>
         <label class="field" for="setLen">Süre (gün)<input type="number" id="setLen" min="7" max="365" step="1" inputmode="numeric"></label>
-        <label class="field" for="setKcalTarget">Günlük kalori hedefi (kcal)<input type="number" id="setKcalTarget" min="500" max="6000" step="10" inputmode="numeric"></label>
       </div>
     </div>
-    <div class="card stack">
-      <h2>Günlük hedefler</h2>
-      <p class="muted small" style="margin:0">İlerleme sekmesindeki dönem hedefi bu değerlerle hesaplanır. Puanı etkilemez; puan yaptığın miktarla artar.</p>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Madde</th><th>Günlük hedef</th><th>Birim</th><th>Puan</th></tr></thead>
-          <tbody id="goalTable"></tbody>
-        </table>
-      </div>
-      <p class="err" id="goalErr"></p>
-      <button type="button" class="btn" id="resetGoals">Varsayılan hedeflere dön</button>
-    </div>
+
     <div class="card stack">
       <h2>Puan nasıl hesaplanıyor</h2>
       <ul class="rules" id="rules"></ul>
     </div>
+
+    <div class="card stack">
+      <details class="sync-d" id="syncDetails">
+        <summary>Bilgisayarla eşitleme</summary>
+        <div class="stack">
+          <p class="syncline"><span id="sync2" class="sync" data-s="local"><i></i></span><span id="syncMsg"></span></p>
+
+          <div id="pcBlock" class="stack" hidden>
+            <p class="muted small" style="margin:0">Veriler bu bilgisayarda duruyor. Telefon evdeki Wi-Fi'ye bağlıyken ve bu program açıkken ikisi kendiliğinden eşitlenir. Dışarıdayken telefona girdiklerin telefonda bekler, eve gelince gönderilir.</p>
+            <div id="pairSteps" class="stack">
+              <h3>Telefonu bağla</h3>
+              <ol class="steps">
+                <li>Telefon bu bilgisayarla aynı Wi-Fi'de olsun.</li>
+                <li>Bu bağlantıyı telefonuna gönder (örneğin WhatsApp'ta kendine). Bağlantıyı başkasıyla paylaşma.
+                  <div class="copyrow"><input type="text" id="pairLink" readonly aria-label="Eşleştirme bağlantısı"><button type="button" class="btn" id="copyLink">Kopyala</button></div>
+                </li>
+                <li>Telefonda Rutin Zinciri uygulamasını aç. Ayarlar, Bilgisayarla eşitleme bölümünde bağlantıyı "PC adresi" alanına yapıştırıp Bağlan'a bas.</li>
+              </ol>
+              <p class="kv">Elle girmek için: PC adresi <b id="pairAddr" class="mono">–</b>, kod <b id="pairKey" class="mono">–</b></p>
+              <p class="kv">Uygulama yerine telefonun tarayıcısını kullanıyorsan şunu aç (sadece evde çalışır): <b id="lanLink" class="mono">–</b></p>
+            </div>
+            <p id="noLan" class="err" hidden>Bu bilgisayar şu an bir ağa bağlı görünmüyor. Wi-Fi'ye bağlanınca telefonu bağlama adımları burada çıkar.</p>
+          </div>
+
+          <div id="phoneBlock" class="stack" hidden>
+            <p class="muted small" style="margin:0">İstersen verilerini evdeki bilgisayarınla eşitleyebilirsin. Bunun için bilgisayarda Rutin Zinciri PC programı çalışmalı ve bu cihaz onunla aynı Wi-Fi'de olmalı. Dışarıdayken girdiklerin burada bekler, eve gelince gönderilir.</p>
+            <p class="muted small" style="margin:0"><a id="guideLink" href="https://github.com/agkoyuna-ui/rutin-zinciri" target="_blank" rel="noopener">PC programı nasıl kurulur</a></p>
+            <div class="fields">
+              <label class="field wide" for="pcAddr" id="pcAddrField">PC adresi ya da eşleştirme bağlantısı<input type="text" id="pcAddr" inputmode="url" placeholder="192.168.1.20:8765" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+              <label class="field" for="pcKey">Kod<input type="text" id="pcKey" placeholder="abcde-fghjk" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+            </div>
+            <div class="btnrow">
+              <button type="button" class="btn primary" id="pairBtn">Bağlan</button>
+              <button type="button" class="btn" id="unpairBtn" hidden>Eşitlemeyi kapat</button>
+            </div>
+            <p id="pairHint" class="err" hidden></p>
+            <p class="muted small" style="margin:0">Bağlandığında bilgisayardaki maddeler ve ayarlar bu cihaza gelir, günlük kayıtlar birleşir.</p>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <p class="muted small" style="margin:0;text-align:center"><a id="privacyLink" href="https://agkoyuna-ui.github.io/rutin-zinciri/gizlilik.html" target="_blank" rel="noopener">Gizlilik politikası</a></p>
   </section>
 </main>
 
 <script>
 (function(){
   "use strict";
-  var DEFAULT_START = "2026-11-01", DEFAULT_LEN = 90, DEFAULT_KCAL = 1500;
+  var DEFAULT_LEN = 90, MAX_ITEMS = 30;
   var LS_KEY = "rutin-zinciri-v3", SYNC_LS = "rutin-zinciri-pc", TAB_LS = "rutin-zinciri-tab";
   var DATE_RE = /^\d{4}-\d{2}-\d{2}$/, FIELD_RE = /^[a-z0-9_]{1,32}$/, MAX_DOCS = 1000;
-  /* in order of priority; points per unit follow that order */
-  var ITEMS = [
-    {id:"kalori", name:"Kalori", kind:"kcal", unit:"kcal", hint:"Günün toplamı"},
-    {id:"yuruyus", name:"Yürüyüş", kind:"amt", unit:"dk", rate:1, goal:45, hint:"Dakika"},
-    {id:"ingilizce_dk", name:"Aktif İngilizce", kind:"amt", unit:"dk", rate:0.9, goal:30, hint:"Gumball, dakika"},
-    {id:"proje", name:"Proje", kind:"amt", unit:"dk", rate:0.8, goal:60, hint:"Dakika"},
-    {id:"etsy", name:"Etsy / trading", kind:"amt", unit:"dk", rate:0.7, goal:30, alt:true, hint:"Gün aşırı, dakika"},
-    {id:"kitap", name:"Kitap", kind:"amt", unit:"sayfa", rate:1, goal:15, hint:"Sayfa"},
-    {id:"sinav_adet", name:"Şınav", kind:"amt", unit:"adet", rate:0.5, goal:40, hint:"Adet"},
-    {id:"roblox", name:"Roblox", kind:"amt", unit:"dk", rate:0.3, goal:60, hint:"Dakika"},
-    {id:"youtube", name:"YouTube kanalları", kind:"amt", unit:"dk", rate:0.2, goal:15, hint:"Video yükleme, dakika"},
-    {id:"sabah", name:"Sabah bakımı", kind:"check", pts:5, hint:"Yüz, diş, yatak"},
+  /* the Android app adds this to its user agent and serves this page from inside the app */
+  var IN_APP = /\bRutinZinciriApp\//.test(navigator.userAgent);
+  /* a new user's starting list; everyone changes it under Ayarlar > Maddeler */
+  var DEFAULT_ITEMS = [
+    {id:"yuruyus", name:"Yürüyüş", kind:"amt", unit:"dk", rate:1, goal:30, hint:""},
+    {id:"kitap", name:"Kitap", kind:"amt", unit:"sayfa", rate:1, goal:10, hint:""},
+    {id:"sinav_adet", name:"Şınav", kind:"amt", unit:"adet", rate:0.5, goal:20, hint:""},
+    {id:"sabah", name:"Sabah rutini", kind:"check", pts:5, hint:""},
     {id:"aksam", name:"Akşam planı", kind:"check", pts:4, hint:"Yarını planla"}
   ];
   var TIER = ["", "Yoğun", "Normal", "Boş"];
   var MONTHS = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
   var nf = new Intl.NumberFormat("tr-TR", {maximumFractionDigits:1});
 
-  var cfg = {start:DEFAULT_START, len:DEFAULT_LEN, kcal:DEFAULT_KCAL, lv:{}};
-  var cfgT = 0, cfgPending = false;
+  var cfg = null, cfgT = 0, cfgPending = false;
   /* days[date] = {v:{id:amount}, ft:{id:lastEditMs}, t:lastEditMs}; dirty[date][id] marks fields not yet stored */
   var days = {}, dirty = {};
   var viewDate = todayStr(), tab = "gun";
@@ -369,6 +436,61 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
   function diffDays(a, b){ return Math.round((pd(b) - pd(a)) / 86400000); }
   function todayStr(){ return ds(new Date()); }
   function plain(x){ return x && typeof x === "object" && !Array.isArray(x) ? x : {}; }
+  function clone(x){ return JSON.parse(JSON.stringify(x)); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+  function round1(n){ return Math.round(n * 10) / 10; }
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  /* ---------- items and settings ---------- */
+  function num(v, lo, hi){ return typeof v === "number" && isFinite(v) && v >= lo && v <= hi ? v : null; }
+  function normItem(it){
+    if (!it || typeof it !== "object") return null;
+    var id = String(it.id || ""), name = String(it.name || "").trim().slice(0, 40), kind = it.kind;
+    if (!FIELD_RE.test(id) || !name) return null;
+    var out = {id:id, name:name, kind:kind, hint:String(it.hint || "").trim().slice(0, 60)};
+    if (kind === "check") { out.pts = num(it.pts, 0, 10000); return out.pts === null ? null : out; }
+    out.unit = String(it.unit || "").trim().slice(0, 12);
+    if (kind === "amt") {
+      out.rate = num(it.rate, 0, 10000); out.goal = num(it.goal, 0.001, 99999);
+      return out.rate === null || out.goal === null ? null : out;
+    }
+    if (kind === "target") {
+      out.target = num(it.target, 0.001, 99999); out.max = num(it.max, 0.001, 10000);
+      out.low = num(it.low, 0, 99999); out.high = num(it.high, 0, 999999);
+      if (out.target === null || out.max === null || out.low === null || out.high === null) return null;
+      return out.low < out.target && out.target < out.high ? out : null;
+    }
+    return null;
+  }
+  function goalPoints(it){ return it.kind === "amt" ? it.goal * it.rate : it.kind === "check" ? it.pts : it.max; }
+  function goalDay(list){ return list.reduce(function(s, it){ return s + goalPoints(it); }, 0); }
+  function roundTh(x){ return Math.max(5, Math.round(x / 5) * 5); }
+  /* chain at 60 %, normal day at 100 %, free day at 160 % of a day where every goal is met */
+  function autoTh(list){
+    var g = goalDay(list), t = [roundTh(g * 0.6), roundTh(g), roundTh(g * 1.6)];
+    if (t[1] <= t[0]) t[1] = t[0] + 5;
+    if (t[2] <= t[1]) t[2] = t[1] + 5;
+    return t;
+  }
+  function normCfg(x){
+    x = x && typeof x === "object" ? x : {};
+    var out = {start:todayStr(), len:DEFAULT_LEN, items:[], th:null};
+    if (typeof x.start === "string" && DATE_RE.test(x.start)) out.start = x.start;
+    if (typeof x.len === "number" && x.len >= 7 && x.len <= 365) out.len = Math.round(x.len);
+    if (Array.isArray(x.items)) {
+      var seen = {};
+      x.items.forEach(function(it){
+        var n = normItem(it);
+        if (n && !seen[n.id] && out.items.length < MAX_ITEMS) { seen[n.id] = true; out.items.push(n); }
+      });
+    } else out.items = clone(DEFAULT_ITEMS);
+    var t = x.th;
+    out.th = Array.isArray(t) && t.length === 3 && t.every(function(n){ return num(n, 0.001, 9999999) !== null; }) && t[0] < t[1] && t[1] < t[2] ? t.slice() : autoTh(out.items);
+    return out;
+  }
+  function items(){ return cfg.items; }
+  function th(i){ return cfg.th[i - 1]; }
+  function barMax(){ return cfg.th[2] * 1.25; }
 
   /* ---------- this device's copy ---------- */
   function lsGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
@@ -381,10 +503,10 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     return out;
   }
   function loadLocal(){
-    var raw = lsGet(LS_KEY);
-    if (!raw) return;
-    try {
-      var x = JSON.parse(raw), xd = plain(x.days), xq = plain(x.dirty);
+    var raw = lsGet(LS_KEY), x = null;
+    if (raw) { try { x = JSON.parse(raw); } catch(e) {} }
+    if (x && typeof x === "object") {
+      var xd = plain(x.days), xq = plain(x.dirty);
       Object.keys(xd).forEach(function(k){ if (DATE_RE.test(k)) days[k] = normDay(xd[k]); });
       Object.keys(xq).forEach(function(k){
         if (!days[k]) return;
@@ -395,23 +517,12 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       if (x.cfg) cfg = normCfg(x.cfg);
       cfgT = Number(x.cfgT) || 0;
       cfgPending = !!x.cfgPending;
-    } catch(e) {}
+    }
+    /* first run: the period starts today; keep it so it does not move on the next launch */
+    if (!cfg) { cfg = normCfg({start:todayStr(), len:DEFAULT_LEN, items:clone(DEFAULT_ITEMS)}); saveLocal(); }
   }
   function saveLocal(){
     lsSet(LS_KEY, JSON.stringify({days:days, dirty:dirty, cfg:cfg, cfgT:cfgT, cfgPending:cfgPending}));
-  }
-  function normCfg(x){
-    var out = {start:DEFAULT_START, len:DEFAULT_LEN, kcal:DEFAULT_KCAL, goal:{}};
-    if (x && typeof x.start === "string" && DATE_RE.test(x.start)) out.start = x.start;
-    if (x && typeof x.len === "number" && x.len >= 7 && x.len <= 365) out.len = Math.round(x.len);
-    if (x && typeof x.kcal === "number" && x.kcal >= 500 && x.kcal <= 6000) out.kcal = Math.round(x.kcal);
-    if (x && x.goal && typeof x.goal === "object") {
-      ITEMS.forEach(function(it){
-        var g = x.goal[it.id];
-        if (it.kind === "amt" && typeof g === "number" && g > 0 && g < 100000) out.goal[it.id] = g;
-      });
-    }
-    return out;
   }
   function markDirty(date, f){ (dirty[date] || (dirty[date] = {}))[f] = true; }
   function clearDirty(date, f){
@@ -434,7 +545,7 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     scheduleSync();
   }
 
-  /* ---------- sync with the program on the home PC ---------- */
+  /* ---------- optional sync with the program on a home PC ---------- */
   var HOSTN = location.hostname;
   var ON_PC = HOSTN === "localhost" || HOSTN === "127.0.0.1" || HOSTN === "[::1]";   /* opened on the PC itself */
   var FROM_PC = location.protocol === "http:";                                         /* the PC program serves this page */
@@ -443,7 +554,7 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
   var lastErr = null, lastErrMsg = "", pairInfo = null;
 
   function normAddr(s){
-    s = String(s || "").trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+    s = String(s || "").trim().replace(/^https?:\/\//i, "").replace(/[\/#?].*$/, "");
     if (!s) return "";
     if (!/:\d{1,5}$/.test(s)) s += ":8765";
     return /^[A-Za-z0-9.\-]+:\d{1,5}$/.test(s) ? s.toLowerCase() : "";
@@ -493,7 +604,7 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
   }
 
   /* Take what the PC has that is newer, field by field; returns true if this device still has edits the PC lacks */
-  function mergeRemote(d){
+  function mergeRemote(d, first){
     var changed = false, reassert = false;
     var rdays = plain(d && d.days);
     Object.keys(rdays).forEach(function(date){
@@ -527,7 +638,8 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       });
     });
     var rt = Number(d && d.cfgT) || 0;
-    if (d && d.cfg && rt > cfgT) {
+    /* on a device's first contact the PC's items and settings win; daily records still merge */
+    if (d && d.cfg && (rt > cfgT || (first && rt > 0))) {
       cfg = normCfg(d.cfg); cfgT = rt; cfgPending = false;
       changed = true;
     } else if (cfgT > rt && !cfgPending) {
@@ -558,8 +670,8 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       Object.keys(dirty[date]).forEach(function(f){ e.v[f] = l.v[f] || 0; e.ft[f] = l.ft[f] || 0; });
       body.days[date] = e; sent[date] = e.ft; push = true;
     });
-    var cfgSent = cfgPending ? cfgT : null;
-    if (cfgPending) { body.cfg = {start:cfg.start, len:cfg.len, kcal:cfg.kcal, goal:cfg.goal}; body.cfgT = cfgT; push = true; }
+    var first = !syncConf.ok;
+    if (cfgPending && !first) { body.cfg = {start:cfg.start, len:cfg.len, items:cfg.items, th:cfg.th}; body.cfgT = cfgT; push = true; }
     try {
       /* the very first connection can sit behind the browser's local-network permission prompt */
       var ms = syncConf.ok || FROM_PC ? 8000 : 45000;
@@ -567,8 +679,8 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       Object.keys(sent).forEach(function(date){
         Object.keys(sent[date]).forEach(function(f){ if (days[date] && (days[date].ft[f] || 0) === sent[date][f]) clearDirty(date, f); });
       });
-      if (cfgSent !== null && cfgT === cfgSent) cfgPending = false;
-      mergeRemote(r.data);
+      if (body.cfg && cfgT === body.cfgT) cfgPending = false;
+      mergeRemote(r.data, first);
       saveLocal();
       lastErr = null; lastErrMsg = "";
       syncConf.ok = true; syncConf.last = Date.now();
@@ -590,8 +702,8 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     }
   }
   function checkPermission(){
-    /* only an https page reaching into the home network is gated by this permission */
-    if (location.protocol !== "https:" || !navigator.permissions || !navigator.permissions.query) return;
+    /* only a browser page on https reaching into the home network is gated by this permission */
+    if (IN_APP || location.protocol !== "https:" || !navigator.permissions || !navigator.permissions.query) return;
     try {
       navigator.permissions.query({name:"local-network-access"}).then(function(p){
         if (p && p.state === "denied" && lastErr === "away") { lastErr = "perm"; paintSync(); }
@@ -615,22 +727,23 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     else s = "ok";
     var awayTxt = ON_PC ? "Program kapalı" : "PC'ye bağlı değil";
     var map = {
-      none:["local","Sadece bu cihaz"], wait:["saving","Bağlanıyor"], ok:["db","Senkron açık"], saving:["saving","Kaydediliyor"],
+      none:["local",""], wait:["saving","Bağlanıyor"], ok:["db","Senkron açık"], saving:["saving","Kaydediliyor"],
       away:["local", n ? awayTxt + " · " + n + " bekliyor" : awayTxt], perm:["err","İzin gerekli"], key:["err","Kod yanlış"], err:["err","Senkron hatası"]
     };
     var m = map[s];
+    /* nothing to show in the header for someone who does not sync */
+    $("sync").hidden = s === "none";
     $("sync").dataset.s = m[0];
     $("sync2").dataset.s = m[0];
     $("syncTxt").textContent = m[1];
     var last = syncConf.last ? " Son eşitleme " + fmtWhen(syncConf.last) + "." : "";
     var waiting = n ? " " + n + " değişiklik bu cihazda bekliyor." : "";
     var noteTxt =
-      s === "none" ? "Bu cihaz henüz PC'ye bağlanmadı, girdiklerin sadece burada duruyor. Bağlamak için PC'de Rutin Zinciri'ni aç ve Ayarlar'daki adımları izle." :
-      s === "key" ? "Kod PC'dekiyle uyuşmuyor. Ayarlar'dan kontrol et." :
-      s === "err" ? (lastErrMsg || "PC'deki program bir hata döndürdü.") :
-      s === "perm" ? "Chrome bu sayfanın ev ağına bağlanmasına izin vermiyor. Chrome'da Ayarlar, Site ayarları, Yerel ağ erişimi bölümünden bu siteye izin ver. Olmazsa PC'deki Ayarlar'da yazan ev adresini dene." :
-      s === "away" && ON_PC ? "Senkron programı çalışmıyor. Masaüstündeki rutin-zinciri klasöründen \"Rutin Zinciri\" dosyasını aç. Girdiklerin bu arada burada bekler." :
-      s === "away" && !syncConf.ok ? "PC'ye ulaşılamadı. Telefon PC ile aynı Wi-Fi'de mi, PC'de Rutin Zinciri açık mı? Chrome yerel ağ izni sorarsa İzin ver'e bas." : "";
+      s === "key" ? "Kod bilgisayardakiyle uyuşmuyor. Ayarlar'dan kontrol et." :
+      s === "err" ? (lastErrMsg || "Bilgisayardaki program bir hata döndürdü.") :
+      s === "perm" ? "Tarayıcı bu sayfanın ev ağına bağlanmasına izin vermiyor. Chrome'da Ayarlar, Site ayarları, Yerel ağ erişimi bölümünden bu siteye izin ver." :
+      s === "away" && ON_PC ? "Senkron programı çalışmıyor. Rutin Zinciri klasöründeki \"Rutin Zinciri\" dosyasını aç. Girdiklerin bu arada burada bekler." :
+      s === "away" && !syncConf.ok ? "Bilgisayara ulaşılamadı. Bu cihaz bilgisayarla aynı Wi-Fi'de mi, bilgisayarda Rutin Zinciri programı açık mı?" : "";
     var note = $("localNote");
     note.hidden = !noteTxt;
     note.textContent = noteTxt;
@@ -638,16 +751,18 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       s === "ok" ? "Senkron açık." + last :
       s === "saving" ? "Kaydediliyor…" :
       s === "wait" ? "Bağlanıyor…" :
-      s === "none" ? "Bu cihaz PC'ye bağlı değil." :
+      s === "none" ? "Kapalı. Veriler sadece bu cihazda." :
       s === "away" && ON_PC ? "Senkron programı çalışmıyor." + waiting :
-      s === "away" ? "PC'ye şu an ulaşılamıyor. Evde değilsen bu normal." + waiting + last :
+      s === "away" ? "Bilgisayara şu an ulaşılamıyor. Evde değilsen bu normal." + waiting + last :
       noteTxt;
+    $("unpairBtn").hidden = FROM_PC || !syncReady();
   }
 
   function renderPair(){
     $("pcBlock").hidden = !ON_PC;
     $("phoneBlock").hidden = ON_PC;
     $("pcAddrField").hidden = FROM_PC;
+    if (ON_PC || syncReady()) $("syncDetails").open = true;
     if (ON_PC) {
       var p = pairInfo || {};
       $("pairLink").value = p.link || "";
@@ -685,33 +800,26 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     if (syncReady()) sync(); else paintSync();
   }
 
-  /* ---------- scoring: priority sets the points per unit, and points keep growing with the amount ---------- */
-  var TH = [0, 150, 250, 400], BAR_MAX = 500;
-  var KCAL_MAX = 50, KCAL_UNDER = 5, KCAL_OVER = 10;   /* points at the target; points lost per 100 kcal under / over it */
-  function goalOf(it){ var g = cfg.goal && cfg.goal[it.id]; return typeof g === "number" && g > 0 ? g : it.goal; }
+  /* ---------- scoring: points grow with the amount; a target item peaks at its target ---------- */
   function val(date, id){ var d = days[date]; return d && typeof d.v[id] === "number" ? d.v[id] : 0; }
-  function round1(n){ return Math.round(n * 10) / 10; }
-  function kcalPoints(k){
-    if (!(k > 0)) return 0;
-    var diff = k - cfg.kcal;
-    /* under the target the points only fall to zero; over it they keep falling below zero */
-    return diff <= 0 ? Math.max(0, KCAL_MAX + diff / 100 * KCAL_UNDER) : KCAL_MAX - diff / 100 * KCAL_OVER;
-  }
   function itemPoints(it, date){
     var a = val(date, it.id);
-    if (it.kind === "kcal") return kcalPoints(a);
-    if (it.kind === "check") return a > 0 ? it.pts : 0;
-    return a > 0 ? a * it.rate : 0;
+    if (!(a > 0)) return 0;
+    if (it.kind === "check") return it.pts;
+    if (it.kind === "amt") return a * it.rate;
+    /* full points at the target, none at or under `low`, below zero past `high` */
+    if (a <= it.target) return Math.max(0, it.max * (a - it.low) / (it.target - it.low));
+    return it.max * (1 - (a - it.target) / (it.high - it.target));
   }
   function pointsOf(date){
     var p = 0;
-    ITEMS.forEach(function(it){ p += itemPoints(it, date); });
+    items().forEach(function(it){ p += itemPoints(it, date); });
     return round1(p);
   }
-  function anyDone(date){ return ITEMS.some(function(it){ return val(date, it.id) > 0; }); }
+  function anyDone(date){ return items().some(function(it){ return val(date, it.id) > 0; }); }
   function tierOf(date){
     var p = pointsOf(date);
-    if (p >= TH[3]) return 3; if (p >= TH[2]) return 2; if (p >= TH[1]) return 1;
+    if (p >= th(3)) return 3; if (p >= th(2)) return 2; if (p >= th(1)) return 1;
     return anyDone(date) ? 0.5 : 0;
   }
   function tkey(t){ return t === 0.5 ? "p" : String(t); }
@@ -730,45 +838,42 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     return Math.min(diffDays(cfg.start, t) + 1, cfg.len);
   }
   function fmtAmt(n, unit){
-    var s = nf.format(Math.round(n * 10) / 10) + " " + unit;
+    var s = nf.format(Math.round(n * 10) / 10) + (unit ? " " + unit : "");
     if (unit === "dk" && n >= 120) s += " (" + nf.format(Math.round(n / 6) / 10) + " sa)";
     return s;
   }
 
   /* ---------- day view ---------- */
+  var rowsKey = "";
+  function itemsKey(){ return JSON.stringify(items().map(function(it){ return [it.id, it.kind, it.name, it.unit || "", it.hint || ""]; })); }
   function buildRows(){
+    rowsKey = itemsKey();
     var ol = $("items");
     ol.textContent = "";
-    ITEMS.forEach(function(it){
-      var li = document.createElement("li");
-      li.className = "row"; li.dataset.id = it.id; li.dataset.t = "0";
-      var info = document.createElement("div"); info.className = "info";
-      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = it.name;
-      var hn = document.createElement("span"); hn.className = "hn"; hn.textContent = it.hint || "";
-      var st = document.createElement("span"); st.className = "st";
-      info.append(nm, hn, st);
-      var ctl = document.createElement("div"); ctl.className = "ctl";
+    if (!items().length) { ol.append(el("li", "emptyrow", "Henüz madde yok. Ayarlar'dan madde ekleyebilirsin.")); return; }
+    items().forEach(function(it){
+      var li = el("li", "row"); li.dataset.id = it.id; li.dataset.t = "0";
+      var info = el("div", "info");
+      info.append(el("span", "nm", it.name), el("span", "hn", it.hint || ""), el("span", "st"));
+      var ctl = el("div", "ctl");
       if (it.kind === "check") {
-        var b = document.createElement("button");
-        b.type = "button"; b.className = "chk"; b.id = "chk-" + it.id; b.setAttribute("aria-pressed", "false");
+        var b = el("button", "chk");
+        b.type = "button"; b.id = "chk-" + it.id; b.setAttribute("aria-pressed", "false");
         b.setAttribute("aria-label", it.name + ": yapıldı");
         b.innerHTML = '<span class="box" aria-hidden="true"></span><span>Yapıldı</span>';
         b.addEventListener("click", function(){ if (isFuture()) return; setVal(it.id, val(viewDate, it.id) > 0 ? 0 : 1, false); });
         ctl.append(b);
       } else {
-        var wrap = document.createElement("label"); wrap.className = "amt"; wrap.htmlFor = "amt-" + it.id;
+        var wrap = el("label", "amt"); wrap.htmlFor = "amt-" + it.id;
         var inp = document.createElement("input");
-        var whole = it.kind === "kcal";
-        inp.type = "number"; inp.min = "0"; inp.step = whole ? "1" : "any"; inp.inputMode = whole ? "numeric" : "decimal"; inp.placeholder = "0";
-        inp.id = "amt-" + it.id; inp.setAttribute("aria-label", it.name + " (" + it.unit + ")");
+        inp.type = "number"; inp.min = "0"; inp.step = "any"; inp.inputMode = "decimal"; inp.placeholder = "0";
+        inp.id = "amt-" + it.id; inp.setAttribute("aria-label", it.name + (it.unit ? " (" + it.unit + ")" : ""));
         inp.addEventListener("input", function(){
           if (isFuture()) return;
           var n = parseFloat(String(inp.value).replace(",", "."));
-          n = isFinite(n) && n > 0 ? n : 0;
-          setVal(it.id, whole ? Math.round(n) : n, true);
+          setVal(it.id, isFinite(n) && n > 0 ? n : 0, true);
         });
-        var u = document.createElement("span"); u.className = "u"; u.textContent = it.unit;
-        wrap.append(inp, u);
+        wrap.append(inp, el("span", "u", it.unit || ""));
         ctl.append(wrap);
       }
       li.append(info, ctl);
@@ -791,7 +896,7 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
 
   function refreshDay(skipId){
     var fut = isFuture();
-    ITEMS.forEach(function(it){
+    items().forEach(function(it){
       var li = document.querySelector('.row[data-id="' + it.id + '"]');
       if (!li) return;
       var a = val(viewDate, it.id), pts = itemPoints(it, viewDate), st = li.querySelector(".st");
@@ -807,25 +912,25 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
       inp.disabled = fut;
       if (it.id !== skipId && document.activeElement !== inp) inp.value = a > 0 ? String(a) : "";
       if (!(a > 0)) st.textContent = "";
-      else if (it.kind === "kcal") {
-        var diff = cfg.kcal - a;
-        st.textContent = fmtPts(pts) + " · " + (diff > 0 ? "hedefin " + nf.format(diff) + " kcal altında" : diff < 0 ? "hedefin " + nf.format(-diff) + " kcal üstünde" : "tam hedefte");
+      else if (it.kind === "target") {
+        var diff = it.target - a, u = it.unit ? " " + it.unit : "";
+        st.textContent = fmtPts(pts) + " · " + (diff > 0 ? "hedefin " + nf.format(round1(diff)) + u + " altında" : diff < 0 ? "hedefin " + nf.format(round1(-diff)) + u + " üstünde" : "tam hedefte");
       } else st.textContent = fmtPts(pts);
     });
 
     var p = pointsOf(viewDate), t = tierOf(viewDate);
-    $("scoreNum").textContent = fut ? "–" : nf.format(Math.round(p));
+    $("scoreNum").textContent = fut ? "–" : (Math.round(p) < 0 ? "−" : "") + nf.format(Math.abs(Math.round(p)));
     var pill = $("tierPill");
     pill.dataset.t = tkey(t);
     pill.textContent = fut ? "Henüz gelmedi" : tierLabel(t);
     $("bar").dataset.t = tkey(t);
-    $("barFill").style.width = Math.max(0, Math.min(100, p / BAR_MAX * 100)) + "%";
-    [1,2,3].forEach(function(n){ $("mk" + n).style.left = (TH[n] / BAR_MAX * 100) + "%"; });
+    $("barFill").style.width = Math.max(0, Math.min(100, p / barMax() * 100)) + "%";
+    [1,2,3].forEach(function(n){ $("mk" + n).style.left = (th(n) / barMax() * 100) + "%"; });
     var ct = $("chainTxt");
     if (fut) ct.textContent = "Bu gün henüz gelmedi.";
-    else if (t >= 1 && t < 3) ct.textContent = "Zincir bu gün için tamam. " + TIER[t + 1] + " gün seviyesine " + nf.format(round1(TH[t + 1] - p)) + " puan var.";
+    else if (t >= 1 && t < 3) ct.textContent = "Zincir bu gün için tamam. " + TIER[t + 1] + " gün seviyesine " + nf.format(round1(th(t + 1) - p)) + " puan var.";
     else if (t === 3) ct.textContent = "Zincir tamam, boş gün seviyesini geçtin. Yaptıkça puan artmaya devam eder.";
-    else ct.textContent = "Zinciri korumak için " + nf.format(round1(TH[1] - p)) + " puan daha lazım.";
+    else ct.textContent = "Zinciri korumak için " + nf.format(round1(th(1) - p)) + " puan daha lazım.";
 
     var d = pd(viewDate), today = todayStr();
     $("dTitle").textContent = viewDate === today ? "Bugün, " + d.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) : d.toLocaleDateString("tr-TR", {weekday:"long", day:"numeric", month:"long"});
@@ -861,26 +966,30 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     return '<div class="kpi"><b class="mono">' + value + '</b><span>' + label + '</span></div>';
   }
   function renderChain(){
-    var s = streaks(), el = elapsedDays();
+    var s = streaks(), elapsed = elapsedDays();
     $("chainKpis").innerHTML =
       kpi(s.cur + " gün", "Şu anki zincir") +
       kpi(s.best + " gün", "En uzun zincir") +
-      kpi(s.kept + " / " + el, "Zinciri koruduğun gün");
+      kpi(s.kept + " / " + elapsed, "Zinciri koruduğun gün");
+    $("lg3").textContent = "Boş gün (" + nf.format(th(3)) + "+)";
+    $("lg2").textContent = "Normal gün (" + nf.format(th(2)) + "+)";
+    $("lg1").textContent = "Yoğun gün (" + nf.format(th(1)) + "+)";
+    $("chainNote").textContent = "Zincir, puanın en az " + nf.format(th(1)) + " olduğu günlerde devam eder. Bir güne dokunup o günü düzenleyebilirsin.";
 
     var cal = $("cal"), today = todayStr();
     cal.textContent = "";
     var off = (pd(cfg.start).getDay() + 6) % 7;
-    for (var i = 0; i < off; i++) { var e = document.createElement("span"); e.className = "cell blank"; cal.append(e); }
+    for (var i = 0; i < off; i++) cal.append(el("span", "cell blank"));
     for (var j = 0; j < cfg.len; j++) {
       (function(date, first){
         var dd = pd(date), fut = date > today, t = tierOf(date);
-        var b = document.createElement("button");
-        b.type = "button"; b.className = "cell";
+        var b = el("button", "cell");
+        b.type = "button";
         b.dataset.t = fut ? "f" : tkey(t);
         if (date === today) b.classList.add("today");
         if (date === viewDate) b.classList.add("sel");
-        if (first || dd.getDate() === 1) { var sm = document.createElement("small"); sm.textContent = MONTHS[dd.getMonth()]; b.append(sm); }
-        var sp = document.createElement("span"); sp.textContent = dd.getDate(); b.append(sp);
+        if (first || dd.getDate() === 1) b.append(el("small", null, MONTHS[dd.getMonth()]));
+        b.append(el("span", null, String(dd.getDate())));
         b.setAttribute("aria-label", dd.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) + ": " + (fut ? "henüz gelmedi" : t === 0 ? "hiç yapılmadı" : tierLabel(t) + ", " + nf.format(Math.round(pointsOf(date))) + " puan"));
         if (fut) b.disabled = true;
         else b.addEventListener("click", function(){ viewDate = date; refreshDay(null); switchTab("gun"); window.scrollTo(0, 0); });
@@ -891,116 +1000,203 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
 
   /* ---------- progress ---------- */
   function renderProg(){
-    var el = elapsedDays(), len = cfg.len, expFrac = el / len;
+    var elapsed = elapsedDays(), len = cfg.len, expFrac = elapsed / len;
     var counts = {3:0, 2:0, 1:0, p:0, 0:0}, ptsSum = 0;
-    for (var i = 0; i < el; i++) {
+    for (var i = 0; i < elapsed; i++) {
       var dt = addDays(cfg.start, i);
       counts[tkey(tierOf(dt))]++; ptsSum += pointsOf(dt);
     }
     var html = "", pctSum = 0, n = 0;
-    ITEMS.forEach(function(it){
+    items().forEach(function(it){
       var done = 0, doneDays = 0, pts = 0;
-      for (var i = 0; i < el; i++) {
+      for (var i = 0; i < elapsed; i++) {
         var dt = addDays(cfg.start, i), a = val(dt, it.id);
         if (a > 0) { done += a; doneDays++; }
         pts += itemPoints(it, dt);
       }
       var target, pct, line1, line2, expected, ptsTxt = "toplam " + fmtPts(pts);
-      if (it.kind === "kcal") {
-        /* how close to the full calorie points on every day of the period */
-        target = KCAL_MAX * len; pct = Math.max(0, pts) / target; expected = KCAL_MAX * el;
-        done = Math.max(0, pts);
-        line1 = doneDays ? "Günlük ortalama " + nf.format(Math.round(sumKcal(el) / doneDays)) + " kcal · " + doneDays + " gün kayıt" : "Henüz kalori girilmedi. Günlük hedef " + nf.format(cfg.kcal) + " kcal";
-        line2 = ptsTxt + " · her gün hedefte olsan " + nf.format(KCAL_MAX * len) + " puan";
+      if (it.kind === "target") {
+        /* how close to full points on every day of the period */
+        var avgVal = doneDays ? done / doneDays : 0;
+        target = it.max * len; done = Math.max(0, pts); pct = done / target; expected = it.max * elapsed;
+        line1 = doneDays ? "Günlük ortalama " + fmtAmt(avgVal, it.unit) + " · " + doneDays + " gün kayıt" : "Henüz kayıt yok. Hedef " + fmtAmt(it.target, it.unit);
+        line2 = ptsTxt + " · her gün hedefte olsan " + nf.format(round1(it.max * len)) + " puan";
       } else if (it.kind === "check") {
-        target = len; pct = doneDays / target; expected = el;
+        target = len; pct = doneDays / target; expected = elapsed;
         line1 = doneDays + " / " + target + " gün · kalan " + Math.max(target - doneDays, 0) + " gün";
-        line2 = (el ? "Geçen " + el + " günün " + doneDays + " tanesinde yaptın · " : "") + ptsTxt;
+        line2 = (elapsed ? "Geçen " + elapsed + " günün " + doneDays + " tanesinde yaptın · " : "") + ptsTxt;
         done = doneDays;
       } else {
-        var perDay = goalOf(it), dayCount = it.alt ? Math.ceil(len / 2) : len;
-        target = perDay * dayCount; pct = done / target; expected = target * expFrac;
-        var avg = el ? done / el : 0;
+        target = it.goal * len; pct = done / target; expected = target * expFrac;
+        var avg = elapsed ? done / elapsed : 0;
         line1 = fmtAmt(done, it.unit) + " / " + fmtAmt(target, it.unit) + " · kalan " + fmtAmt(Math.max(target - done, 0), it.unit);
-        line2 = (el ? "Günlük ortalama " + nf.format(Math.round(avg * 10) / 10) + " " + it.unit + " · " : "") + ptsTxt;
+        line2 = (elapsed ? "Günlük ortalama " + fmtAmt(avg, it.unit) + " · " : "") + ptsTxt;
       }
       var ratio = expected > 0 ? done / expected : 1;
-      var s = el === 0 ? "" : ratio >= 1 ? "good" : ratio >= 0.7 ? "mid" : "bad";
+      var s = elapsed === 0 ? "" : ratio >= 1 ? "good" : ratio >= 0.7 ? "mid" : "bad";
       pctSum += Math.min(pct, 1); n++;
-      html += '<div class="prog"><div class="ph"><span class="nm">' + it.name + '</span><span class="mono pct">%' + Math.round(pct * 100) + '</span></div>' +
+      html += '<div class="prog"><div class="ph"><span class="nm">' + esc(it.name) + '</span><span class="mono pct">%' + Math.round(pct * 100) + '</span></div>' +
         '<div class="pbar" data-s="' + s + '"><i style="width:' + Math.min(100, pct * 100) + '%"></i><b style="left:' + (expFrac * 100) + '%"></b></div>' +
-        '<p class="pd mono">' + line1 + '</p><p class="pd muted">' + line2 + '</p></div>';
+        '<p class="pd mono">' + esc(line1) + '</p><p class="pd muted">' + esc(line2) + '</p></div>';
     });
-    $("progList").innerHTML = html;
+    $("progList").innerHTML = html || '<p class="emptyrow">Henüz madde yok.</p>';
     $("progKpis").innerHTML =
-      kpi(el + " / " + len, "Geçen gün") +
-      kpi(el ? nf.format(Math.round(ptsSum / el)) : 0, "Ortalama günlük puan") +
-      kpi("%" + Math.round(pctSum / n * 100), "Genel hedef ilerlemesi") +
+      kpi(elapsed + " / " + len, "Geçen gün") +
+      kpi(elapsed ? nf.format(Math.round(ptsSum / elapsed)) : 0, "Ortalama günlük puan") +
+      kpi("%" + (n ? Math.round(pctSum / n * 100) : 0), "Genel hedef ilerlemesi") +
       '<div class="kpi" style="grid-column:1/-1"><span>Gün dağılımı</span><div class="counts">' +
-        '<span><i class="sw t3"></i>Boş (400+) ' + counts[3] + '</span>' +
-        '<span><i class="sw t2"></i>Normal (250+) ' + counts[2] + '</span>' +
-        '<span><i class="sw t1"></i>Yoğun (150+) ' + counts[1] + '</span>' +
-        '<span><i class="sw p"></i>Kısmi ' + counts.p + '</span>' +
+        '<span><i class="sw t3"></i>Boş (' + nf.format(th(3)) + '+) ' + counts[3] + '</span>' +
+        '<span><i class="sw t2"></i>Normal (' + nf.format(th(2)) + '+) ' + counts[2] + '</span>' +
+        '<span><i class="sw t1"></i>Yoğun (' + nf.format(th(1)) + '+) ' + counts[1] + '</span>' +
+        '<span><i class="sw p"></i>Eşiğin altında ' + counts.p + '</span>' +
         '<span><i class="sw"></i>Hiç ' + counts[0] + '</span></div></div>';
   }
-  function sumKcal(el){
-    var s = 0;
-    for (var i = 0; i < el; i++) s += val(addDays(cfg.start, i), "kalori");
-    return s;
+
+  /* ---------- settings: item list and editor ---------- */
+  var editingId = null, confirmDel = null;
+  function summary(it){
+    var u = it.unit || "birim";
+    if (it.kind === "check") return "Yapıldı / yapılmadı · " + nf.format(it.pts) + " puan";
+    if (it.kind === "amt") return u + " başına " + nf.format(it.rate) + " puan · günlük hedef " + fmtAmt(it.goal, it.unit);
+    return "Hedef " + fmtAmt(it.target, it.unit) + " · hedefte " + nf.format(it.max) + " puan · " + nf.format(it.low) + " ve altı 0 · " + nf.format(it.high) + " üstü eksi";
+  }
+  function moveItem(i, d){
+    var list = items().slice(), j = i + d;
+    if (j < 0 || j >= list.length) return;
+    var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+    cfg.items = list; markCfg(); renderAll();
+  }
+  function renderItemList(){
+    var ul = $("itemList");
+    ul.textContent = "";
+    if (!items().length) ul.append(el("li", "emptyrow", "Henüz madde yok."));
+    items().forEach(function(it, i){
+      var li = el("li", "irow"), info = el("div", "info"), acts = el("div", "acts");
+      info.append(el("span", "nm", it.name), el("span", "hn", summary(it)));
+      function mini(text, label, fn, extra){
+        var b = el("button", "mini" + (extra ? " " + extra : ""), text);
+        b.type = "button"; b.setAttribute("aria-label", label); b.addEventListener("click", fn);
+        return b;
+      }
+      if (confirmDel === it.id) {
+        info.append(el("span", "err", "Silinsin mi? Bu maddeye girdiğin kayıtlar artık puana sayılmaz."));
+        acts.append(
+          mini("Sil", it.name + " maddesini sil", function(){
+            cfg.items = items().filter(function(x){ return x.id !== it.id; });
+            confirmDel = null; markCfg(); renderAll();
+          }, "danger"),
+          mini("Vazgeç", "Silmekten vazgeç", function(){ confirmDel = null; renderItemList(); })
+        );
+      } else {
+        var up = mini("↑", it.name + " yukarı", function(){ moveItem(i, -1); });
+        var down = mini("↓", it.name + " aşağı", function(){ moveItem(i, 1); });
+        up.disabled = i === 0; down.disabled = i === items().length - 1;
+        acts.append(up, down,
+          mini("Düzenle", it.name + " maddesini düzenle", function(){ openForm(it); }),
+          mini("Sil", it.name + " maddesini sil", function(){ confirmDel = it.id; renderItemList(); }));
+      }
+      li.append(info, acts);
+      ul.append(li);
+    });
+    $("addItem").hidden = !$("itemForm").hidden || items().length >= MAX_ITEMS;
+  }
+  var HELP = {
+    amt: "Yaptığın miktar kadar puan: birim başına 1 puan verirsen 45 dakika 45 puan eder. Günlük hedef sadece İlerleme sekmesinde kullanılır.",
+    check: "Yapıldı olarak işaretlediğin gün bu puanı alırsın.",
+    target: "Hedefe yaklaştıkça puan artar, hedefte en yüksek puanı alırsın. Alt sınırda ve altında puan 0 olur. Hedefi aştıkça puan düşer, üst sınırı geçince eksiye iner ve günün puanından düşer. Örneğin kalori için hedef 1500, alt sınır 500, üst sınır 2000."
+  };
+  function showKindFields(){
+    var k = $("f-kind").value;
+    document.querySelectorAll("#itemForm [data-k]").forEach(function(f){ f.hidden = f.dataset.k.split(" ").indexOf(k) < 0; });
+    $("f-help").textContent = HELP[k] || "";
+  }
+  function openForm(it){
+    editingId = it ? it.id : null;
+    confirmDel = null;
+    $("formTitle").textContent = it ? it.name + " maddesini düzenle" : "Yeni madde";
+    $("f-name").value = it ? it.name : "";
+    $("f-kind").value = it ? it.kind : "amt";
+    $("f-unit").value = it && it.unit ? it.unit : "";
+    $("f-rate").value = it && it.kind === "amt" ? it.rate : "";
+    $("f-goal").value = it && it.kind === "amt" ? it.goal : "";
+    $("f-pts").value = it && it.kind === "check" ? it.pts : "";
+    $("f-target").value = it && it.kind === "target" ? it.target : "";
+    $("f-max").value = it && it.kind === "target" ? it.max : "";
+    $("f-low").value = it && it.kind === "target" ? it.low : "";
+    $("f-high").value = it && it.kind === "target" ? it.high : "";
+    $("f-hint").value = it ? it.hint || "" : "";
+    $("f-err").textContent = "";
+    $("itemForm").hidden = false;
+    showKindFields();
+    renderItemList();
+    $("f-name").focus();
+  }
+  function closeForm(){
+    editingId = null;
+    $("itemForm").hidden = true;
+    renderItemList();
+  }
+  function numIn(id){ var n = parseFloat(String($(id).value).replace(",", ".")); return isFinite(n) ? n : null; }
+  function saveForm(){
+    var kind = $("f-kind").value, name = $("f-name").value.trim(), err = "";
+    var it = {id: editingId || ("m" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36)), name:name, kind:kind, hint:$("f-hint").value.trim()};
+    if (!name) err = "Bir ad yaz.";
+    else if (kind === "check") {
+      it.pts = numIn("f-pts");
+      if (!(it.pts >= 0)) err = "Puanı yaz, örneğin 5.";
+    } else {
+      it.unit = $("f-unit").value.trim();
+      if (kind === "amt") {
+        it.rate = numIn("f-rate"); it.goal = numIn("f-goal");
+        if (!(it.rate >= 0)) err = "Birim başına puanı yaz, örneğin 1.";
+        else if (!(it.goal > 0)) err = "Günlük hedefi sıfırdan büyük bir sayı olarak yaz.";
+      } else {
+        it.target = numIn("f-target"); it.max = numIn("f-max"); it.low = numIn("f-low"); it.high = numIn("f-high");
+        if (!(it.target > 0) || !(it.max > 0)) err = "Hedefi ve hedefteki puanı sıfırdan büyük sayılar olarak yaz.";
+        else if (!(it.low >= 0 && it.low < it.target)) err = "Alt sınır hedeften küçük olmalı.";
+        else if (!(it.high > it.target)) err = "Üst sınır hedeften büyük olmalı.";
+      }
+    }
+    var clean = err ? null : normItem(it);
+    if (!err && !clean) err = "Değerlerden biri çok büyük ya da geçersiz.";
+    if (err) { $("f-err").textContent = err; return; }
+    var list = items().slice(), at = -1;
+    list.forEach(function(x, i){ if (x.id === clean.id) at = i; });
+    if (at >= 0) list[at] = clean; else list.push(clean);
+    cfg.items = list;
+    editingId = null;
+    $("itemForm").hidden = true;
+    markCfg(); renderAll();
   }
 
-  /* ---------- settings ---------- */
-  function buildSettings(){
-    var tb = $("goalTable");
-    tb.textContent = "";
-    ITEMS.forEach(function(it){
-      if (it.kind !== "amt") return;
-      var tr = document.createElement("tr");
-      var td0 = document.createElement("td"); td0.textContent = it.name; tr.append(td0);
-      var td = document.createElement("td");
-      var inp = document.createElement("input");
-      inp.type = "number"; inp.min = "0"; inp.step = "any"; inp.inputMode = "decimal";
-      inp.id = "goal-" + it.id;
-      inp.setAttribute("aria-label", it.name + " günlük hedefi (" + it.unit + ")");
-      inp.addEventListener("change", function(){ onGoalChange(it); });
-      td.append(inp); tr.append(td);
-      var tdu = document.createElement("td"); tdu.className = "muted"; tdu.textContent = it.unit; tr.append(tdu);
-      var tdp = document.createElement("td"); tdp.className = "muted mono"; tdp.textContent = nf.format(it.rate) + " / " + it.unit; tr.append(tdp);
-      tb.append(tr);
-    });
-  }
   function renderRules(){
-    var zero = cfg.kcal + KCAL_MAX / KCAL_OVER * 100;
-    var per = ITEMS.filter(function(it){ return it.kind === "amt"; }).map(function(it){
-      return it.name + ": " + (it.unit === "sayfa" ? "sayfası " : it.unit === "adet" ? "adedi " : "dakikası ") + nf.format(it.rate) + " puan";
+    var ul = $("rules");
+    ul.textContent = "";
+    items().forEach(function(it){
+      var u = it.unit || "birim", t;
+      if (it.kind === "check") t = it.name + ": yapıldıysa " + nf.format(it.pts) + " puan.";
+      else if (it.kind === "amt") t = it.name + ": " + u + " başına " + nf.format(it.rate) + " puan.";
+      else t = it.name + ": hedefte (" + fmtAmt(it.target, it.unit) + ") " + nf.format(it.max) + " puan. " + nf.format(it.low) + " ve altında 0 puan; " + nf.format(it.high) + " üstünde eksiye iner ve günün puanından düşer.";
+      ul.append(el("li", null, t));
     });
-    var checks = ITEMS.filter(function(it){ return it.kind === "check"; }).map(function(it){ return it.name + " " + it.pts; });
-    $("rules").innerHTML =
-      "<li>Kalori: hedefte (" + nf.format(cfg.kcal) + " kcal) " + KCAL_MAX + " puan. Altında her 100 kcal için " + KCAL_UNDER + " puan düşer, en az 0 olur. Üstünde her 100 kcal için " + KCAL_OVER + " puan düşer; " + nf.format(zero) + " kcal'i geçince eksiye iner ve günün puanından düşer.</li>" +
-      per.map(function(s){ return "<li>" + s + "</li>"; }).join("") +
-      "<li>" + checks.join(", ") + " puan: yapıldıysa.</li>" +
-      "<li>Puanın üst sınırı yok, yaptıkça artar. Zincir " + TH[1] + " puanda devam eder; " + TH[2] + " puan normal, " + TH[3] + " puan boş gün seviyesi.</li>";
+    ul.append(el("li", null, "Puanın üst sınırı yok, yaptıkça artar. Zincir " + nf.format(th(1)) + " puanda devam eder; " + nf.format(th(2)) + " puan normal, " + nf.format(th(3)) + " puan boş gün seviyesi."));
   }
   function fillSettings(){
     var act = document.activeElement;
     if (act !== $("setStart")) $("setStart").value = cfg.start;
     if (act !== $("setLen")) $("setLen").value = cfg.len;
-    if (act !== $("setKcalTarget")) $("setKcalTarget").value = cfg.kcal;
-    ITEMS.forEach(function(it){
-      if (it.kind !== "amt") return;
-      var inp = $("goal-" + it.id);
-      if (inp !== act) { inp.value = goalOf(it); inp.removeAttribute("aria-invalid"); }
-    });
+    [1,2,3].forEach(function(i){ var inp = $("th" + i); if (inp !== act) { inp.value = th(i); inp.removeAttribute("aria-invalid"); } });
+    $("thHelp").textContent = "Maddelerinle bütün günlük hedefleri tutturduğun bir gün " + nf.format(round1(goalDay(items()))) + " puan ediyor.";
+    renderItemList();
     renderRules();
   }
-  function onGoalChange(it){
-    var inp = $("goal-" + it.id), v = parseFloat(String(inp.value).replace(",", "."));
-    var ok = isFinite(v) && v > 0 && v < 100000;
-    inp.setAttribute("aria-invalid", ok ? "false" : "true");
-    if (!ok) { $("goalErr").textContent = it.name + ": hedef sıfırdan büyük bir sayı olmalı."; return; }
-    $("goalErr").textContent = "";
-    cfg.goal = Object.assign({}, cfg.goal); cfg.goal[it.id] = v;
-    markCfg(); renderAll();
+  function onThChange(){
+    var v = [1,2,3].map(function(i){ return numIn("th" + i); });
+    var ok = v.every(function(n){ return n > 0 && n < 9999999; }) && v[0] < v[1] && v[1] < v[2];
+    [1,2,3].forEach(function(i){ $("th" + i).setAttribute("aria-invalid", ok ? "false" : "true"); });
+    if (!ok) { $("thErr").textContent = "Eşikler sıfırdan büyük olmalı ve zincir < normal < boş sırasında olmalı."; return; }
+    $("thErr").textContent = "";
+    cfg.th = v; markCfg(); renderAll();
   }
 
   /* ---------- tabs & wiring ---------- */
@@ -1016,6 +1212,7 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     lsSet(TAB_LS, t);
   }
   function renderAll(){
+    if (itemsKey() !== rowsKey) buildRows();
     renderHeader();
     refreshDay(null);
     if (tab === "zincir") renderChain();
@@ -1037,27 +1234,38 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
     if (!(n >= 7 && n <= 365)) { $("setLen").value = cfg.len; return; }
     cfg.len = n; markCfg(); renderAll();
   });
-  $("setKcalTarget").addEventListener("change", function(){
-    var n = Math.round(Number($("setKcalTarget").value));
-    if (!(n >= 500 && n <= 6000)) { $("setKcalTarget").value = cfg.kcal; return; }
-    cfg.kcal = n; markCfg(); renderAll();
-  });
-  $("resetGoals").addEventListener("click", function(){
-    cfg.goal = {}; $("goalErr").textContent = "";
-    markCfg(); renderAll(); fillSettings();
+  $("addItem").addEventListener("click", function(){ openForm(null); });
+  $("f-kind").addEventListener("change", showKindFields);
+  $("f-save").addEventListener("click", saveForm);
+  $("f-cancel").addEventListener("click", closeForm);
+  [1,2,3].forEach(function(i){ $("th" + i).addEventListener("change", onThChange); });
+  $("thAuto").addEventListener("click", function(){
+    cfg.th = autoTh(items()); $("thErr").textContent = "";
+    markCfg(); renderAll();
   });
 
   $("pairBtn").addEventListener("click", function(){
-    var addr = FROM_PC ? syncConf.addr : normAddr($("pcAddr").value), key = normKey($("pcKey").value);
+    /* the whole pairing link can be pasted into either field */
+    var rawA = $("pcAddr").value, rawK = $("pcKey").value, both = rawA + " " + rawK;
+    var mPc = /[#&?]pc=([^&\s]+)/.exec(both), mK = /[#&?]kod=([^&\s]+)/.exec(both);
+    try { if (mPc) rawA = decodeURIComponent(mPc[1]); if (mK) rawK = decodeURIComponent(mK[1]); } catch(e) {}
+    var addr = FROM_PC ? syncConf.addr : normAddr(rawA), key = normKey(rawK);
     var hint = $("pairHint");
-    hint.textContent = !FROM_PC && !addr ? "PC adresini PC'deki Ayarlar'da yazdığı gibi gir, örneğin 192.168.1.20:8765." :
-      key.length < 8 ? "Kodu PC'deki Ayarlar'da yazdığı gibi gir." : "";
+    hint.textContent = !FROM_PC && !addr ? "Bilgisayardaki Ayarlar'da yazan adresi gir, örneğin 192.168.1.20:8765, ya da eşleştirme bağlantısını yapıştır." :
+      key.length < 8 ? "Bilgisayardaki Ayarlar'da yazan kodu gir." : "";
     hint.hidden = !hint.textContent;
     if (hint.textContent) return;
+    $("pcAddr").value = addr; $("pcKey").value = prettyKey(key);
     syncConf = {addr:addr, key:key, ok:false, last:0};
     saveSyncConf();
     lastErr = null; burst = 0;
     sync();
+  });
+  $("unpairBtn").addEventListener("click", function(){
+    syncConf = {addr:"", key:"", ok:false, last:0};
+    saveSyncConf();
+    lastErr = null;
+    renderPair(); paintSync();
   });
   $("copyLink").addEventListener("click", function(){
     var inp = $("pairLink"), btn = $("copyLink");
@@ -1086,15 +1294,14 @@ h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
   try { localStorage.removeItem("rutin-zinciri-v2"); } catch(e) {}
   loadLocal();
   loadSyncConf();
-  buildRows();
-  buildSettings();
   var savedTab = lsGet(TAB_LS);
   if (savedTab && $("v-" + savedTab)) tab = savedTab;
+  buildRows();
   switchTab(tab);
   renderAll();
   initSync();
-  /* keeps the app opening without a connection once it has been loaded */
-  if ("serviceWorker" in navigator && (location.protocol === "https:" || ON_PC)) {
+  /* keeps the browser version opening without a connection; the Android app carries its own copy */
+  if (!IN_APP && "serviceWorker" in navigator && (location.protocol === "https:" || ON_PC)) {
     navigator.serviceWorker.register("sw.js").catch(function(){});
   }
 })();

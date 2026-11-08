@@ -18,6 +18,9 @@ const PORT = Number(process.env.RUTIN_PORT) || 8765;
 const HOST = process.env.RUTIN_HOST || "0.0.0.0";
 const PAGES_ORIGIN = process.env.RUTIN_SITE_ORIGIN || "https://agkoyuna-ui.github.io";
 const PAGES_URL = PAGES_ORIGIN + "/rutin-zinciri/";
+/* Android uygulaması sayfayı kendi içinden bu adresle açar */
+const APP_ORIGIN = "https://appassets.androidplatform.net";
+const ALLOWED_ORIGINS = [PAGES_ORIGIN, APP_ORIGIN];
 const APP_DIR = path.join(__dirname, "..", "docs");
 const DATA_DIR = process.env.RUTIN_VERI || path.join(__dirname, "veri");
 const DATA_FILE = path.join(DATA_DIR, "rutin-data.json");
@@ -196,9 +199,10 @@ function send(res, code, body, headers) {
   res.end(body === undefined ? undefined : JSON.stringify(body));
 }
 function corsFor(req) {
-  if (req.headers.origin !== PAGES_ORIGIN) return {};
+  const origin = req.headers.origin;
+  if (!ALLOWED_ORIGINS.includes(origin)) return {};
   return {
-    "Access-Control-Allow-Origin": PAGES_ORIGIN,
+    "Access-Control-Allow-Origin": origin,
     "Vary": "Origin",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-Rutin-Key",
@@ -239,7 +243,7 @@ async function handle(req, res) {
   const pathname = url.pathname;
   const cors = corsFor(req);
   const origin = req.headers.origin;
-  const originOk = !origin || origin === PAGES_ORIGIN || origin === "http://" + String(host).toLowerCase();
+  const originOk = !origin || ALLOWED_ORIGINS.includes(origin) || origin === "http://" + String(host).toLowerCase();
 
   if (!pathname.startsWith("/api/")) {
     if (req.method !== "GET" && req.method !== "HEAD") return send(res, 405, { error: "method" });

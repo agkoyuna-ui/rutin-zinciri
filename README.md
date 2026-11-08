@@ -1,31 +1,49 @@
 # Rutin Zinciri
 
-Günlük rutin takibi: günün puanı, zincir takvimi ve dönem ilerlemesi. Telefonda ve PC'de çalışır. Veriler evdeki PC'de durur, telefon aynı Wi-Fi'deyken kendiliğinden eşitlenir.
+Günlük rutinlerini puana çeviren bir alışkanlık takipçisi. Maddelerini ve her maddenin puanını kendin belirlersin; günün puanı eşiği geçtiğinde zincir devam eder.
 
-## Kullanım
+- **Android uygulaması:** Google Play'de (paket adı `com.zincir.app`). İnternetsiz çalışır, veriler telefonda kalır.
+- **Tarayıcı sürümü:** https://agkoyuna-ui.github.io/rutin-zinciri/
+- **Gizlilik politikası:** https://agkoyuna-ui.github.io/rutin-zinciri/gizlilik.html
 
-**PC:** `Rutin Zinciri.bat` dosyasını aç. Program başlar ve uygulama tarayıcıda açılır (`http://localhost:8765`). Windows Güvenlik Duvarı ilk açılışta sorarsa özel ağlar için izin ver, yoksa telefon bağlanamaz.
+## Bilgisayarla eşitleme (isteğe bağlı)
 
-**Telefon (Android):** PC'deki uygulamada Ayarlar bölümündeki "Telefonu bağla" adımlarını izle. Bağlandıktan sonra Chrome menüsünden "Ana ekrana ekle" ile telefona kur.
+Telefonundaki kayıtları evdeki bilgisayarınla eşitlemek istersen bilgisayarda küçük bir program çalıştırırsın. Veriler internete çıkmaz; ev Wi-Fi'n üzerinden doğrudan senin bilgisayarına gider.
 
-Telefon dışarıdayken uygulama yine açılır ve girdiklerin telefonda bekler. Eve gelip aynı Wi-Fi'ye bağlanınca PC'ye gönderilir. Bunun için PC'de programın açık olması gerekir.
+1. Bilgisayara [Node.js](https://nodejs.org) kur.
+2. Bu sayfadan kodu indir (Code > Download ZIP) ve bir klasöre çıkar.
+3. `Rutin Zinciri.bat` dosyasını aç. Uygulama tarayıcıda açılır (`http://localhost:8765`). Windows Güvenlik Duvarı sorarsa özel ağlar için izin ver.
+4. Bilgisayardaki uygulamada Ayarlar > Bilgisayarla eşitleme bölümündeki bağlantıyı kopyala.
+5. Telefonda Rutin Zinciri'nde Ayarlar > Bilgisayarla eşitleme bölümüne bağlantıyı yapıştırıp Bağlan'a bas.
+
+Bağlandığında bilgisayardaki maddeler ve ayarlar telefona gelir, günlük kayıtlar birleşir. Telefon dışarıdayken girdiklerin telefonda bekler, eve gelince gönderilir. Bunun için bilgisayarda programın açık olması gerekir.
 
 **Windows açılınca kendiliğinden başlasın:** `pc/Otomatik baslat - ac.bat` dosyasını bir kez aç. Vazgeçmek için `pc/Otomatik baslat - kapat.bat`.
 
-## Sorun giderme
+### Sorun giderme
 
 | Üstte görünen | Anlamı |
 |---|---|
-| Sadece bu cihaz | Telefon henüz PC'ye bağlanmadı |
-| PC'ye bağlı değil | PC'ye ulaşılamıyor. Dışarıdaysan normal. Evdeysen PC'de program açık mı, ikisi aynı Wi-Fi'de mi bak |
-| Program kapalı | PC'de `Rutin Zinciri.bat` çalışmıyor |
-| Kod yanlış | Telefondaki kod PC'dekiyle aynı değil |
-| İzin gerekli | Chrome'da bu site için yerel ağ izni kapalı |
+| PC'ye bağlı değil | Bilgisayara ulaşılamıyor. Dışarıdaysan normal. Evdeysen programın açık olduğuna ve ikisinin aynı Wi-Fi'de olduğuna bak |
+| Program kapalı | Bilgisayarda `Rutin Zinciri.bat` çalışmıyor |
+| Kod yanlış | Telefondaki kod bilgisayardakiyle aynı değil |
 
-Telefon evde olduğu halde bağlanmıyorsa PC'nin ev ağındaki adresi değişmiş olabilir. PC'deki Ayarlar bölümünde güncel bağlantı yazar, telefonda onu yeniden aç.
+Telefon evde olduğu halde bağlanmıyorsa bilgisayarın ev ağındaki adresi değişmiş olabilir. Bilgisayardaki Ayarlar'da güncel bağlantı yazar, telefonda onu yeniden yapıştır.
 
-## Dosyalar
+## Klasörler
 
-- `docs/` uygulamanın kendisi. GitHub Pages'ta yayınlanır.
-- `pc/server.js` PC'de çalışan program. Ek paket gerektirmez, sadece Node.js.
-- `pc/veri/` girdiğin veriler (`rutin-data.json`) ve eşleştirme kodu (`kod.txt`). Sadece bu bilgisayarda durur, GitHub'a gitmez. Yedek almak için bu klasörü kopyalaman yeterli.
+- `docs/` uygulamanın kendisi. Tarayıcı sürümü GitHub Pages'tan buradan yayınlanır; Android uygulaması da bu dosyaları içine alır.
+- `android/` Android uygulaması. `android/imza/` yükleme anahtarıdır ve GitHub'a gitmez.
+- `pc/server.js` bilgisayarda çalışan eşitleme programı. Ek paket gerektirmez, sadece Node.js.
+- `pc/veri/` bilgisayardaki veriler ve eşleştirme kodu. GitHub'a gitmez; yedek almak için bu klasörü kopyalaman yeterli.
+- `play/` Google Play mağaza metinleri, görseller ve yayınlama adımları.
+
+## Android uygulamasını derlemek
+
+`android` klasöründe, Android Studio'nun Java'sıyla:
+
+```
+gradlew bundleRelease assembleRelease
+```
+
+AAB `android/app/build/outputs/bundle/release/`, APK `android/app/build/outputs/apk/release/` altında oluşur. Her Play güncellemesinde `android/app/build.gradle` içindeki `versionCode` bir artırılmalı.

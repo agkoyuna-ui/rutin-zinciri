@@ -1,0 +1,62 @@
+plugins {
+    id "com.android.application"
+}
+
+// Play'e yükleme anahtarı: android/imza/imza.properties (GitHub'a gitmez).
+// Dosya yoksa sürüm, geliştirme için bu bilgisayarın debug anahtarıyla imzalanır.
+def imzaDosyasi = rootProject.file("imza/imza.properties")
+def imza = new Properties()
+if (imzaDosyasi.exists()) imzaDosyasi.withInputStream { imza.load(it) }
+
+android {
+    namespace "com.zincir.app"
+    compileSdk 36
+    buildToolsVersion "36.0.0"
+
+    defaultConfig {
+        applicationId "com.zincir.app"
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        if (imzaDosyasi.exists()) {
+            yukleme {
+                storeFile rootProject.file(imza["storeFile"])
+                storePassword imza["storePassword"]
+                keyAlias imza["keyAlias"]
+                keyPassword imza["keyPassword"]
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig imzaDosyasi.exists() ? signingConfigs.yukleme : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Uygulamanın sayfası docs/ klasöründen gelir; telefondaki ve bilgisayardaki sürüm aynı dosyadır
+    sourceSets {
+        main {
+            assets.srcDirs = ["../../docs"]
+        }
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

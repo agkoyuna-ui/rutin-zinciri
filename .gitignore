@@ -1,2 +1,14 @@
 # Girdiğin veriler ve eşleştirme kodu sadece bu bilgisayarda kalır
 pc/veri/
+
+# Android derleme çıktıları ve yerel ayarlar
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+# Play yükleme anahtarı: asla GitHub'a gitmez, yedeğini ayrıca sakla
+android/imza/
+# Derlenen uygulama dosyaları
+cikti/
+*.apk
+*.aab
