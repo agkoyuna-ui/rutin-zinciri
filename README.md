@@ -1,41 +1,25 @@
 # Rutin Zinciri
 
-Günlük rutinlerini puana çeviren bir alışkanlık takipçisi. Maddelerini ve her maddenin puanını kendin belirlersin; günün puanı eşiği geçtiğinde zincir devam eder.
+Günlük rutinlerini puana çeviren bir alışkanlık takipçisi. Uygulama boş başlar; takip etmek istediğin işleri sen eklersin, her işe bir önem derecesi verirsin, puanı uygulama hesaplar. Günün puanı eşiği geçtiğinde zincir devam eder.
 
 - **Android uygulaması:** Google Play'de (paket adı `com.zincir.app`). İnternetsiz çalışır, veriler telefonda kalır.
 - **Tarayıcı sürümü:** https://agkoyuna-ui.github.io/rutin-zinciri/
 - **Gizlilik politikası:** https://agkoyuna-ui.github.io/rutin-zinciri/gizlilik.html
 
-## Bilgisayarla eşitleme (isteğe bağlı)
+## Puan nasıl hesaplanır
 
-Telefonundaki kayıtları evdeki bilgisayarınla eşitlemek istersen bilgisayarda küçük bir program çalıştırırsın. Veriler internete çıkmaz; ev Wi-Fi'n üzerinden doğrudan senin bilgisayarına gider.
-
-1. Bilgisayara [Node.js](https://nodejs.org) kur.
-2. Bu sayfadan kodu indir (Code > Download ZIP) ve bir klasöre çıkar.
-3. `Rutin Zinciri.bat` dosyasını aç. Uygulama tarayıcıda açılır (`http://localhost:8765`). Windows Güvenlik Duvarı sorarsa özel ağlar için izin ver.
-4. Bilgisayardaki uygulamada Ayarlar > Bilgisayarla eşitleme bölümündeki bağlantıyı kopyala.
-5. Telefonda Rutin Zinciri'nde Ayarlar > Bilgisayarla eşitleme bölümüne bağlantıyı yapıştırıp Bağlan'a bas.
-
-Bağlandığında bilgisayardaki maddeler ve ayarlar telefona gelir, günlük kayıtlar birleşir. Telefon dışarıdayken girdiklerin telefonda bekler, eve gelince gönderilir. Bunun için bilgisayarda programın açık olması gerekir.
-
-**Windows açılınca kendiliğinden başlasın:** `pc/Otomatik baslat - ac.bat` dosyasını bir kez aç. Vazgeçmek için `pc/Otomatik baslat - kapat.bat`.
-
-### Sorun giderme
-
-| Üstte görünen | Anlamı |
+| İş türü | Puan |
 |---|---|
-| PC'ye bağlı değil | Bilgisayara ulaşılamıyor. Dışarıdaysan normal. Evdeysen programın açık olduğuna ve ikisinin aynı Wi-Fi'de olduğuna bak |
-| Program kapalı | Bilgisayarda `Rutin Zinciri.bat` çalışmıyor |
-| Kod yanlış | Telefondaki kod bilgisayardakiyle aynı değil |
+| Tikli | Yaptığın gün önem derecesinin puanı |
+| Süreli (dk, saat, sayfa…) | Günlük hedefe ulaşınca önem derecesinin puanı; hedefin iki katı iki kat puan |
+| Hedefe yakınlık (kalori gibi) | Hedefte önem derecesinin puanı; alt sınırda 0, üst sınırı geçince eksi |
 
-Telefon evde olduğu halde bağlanmıyorsa bilgisayarın ev ağındaki adresi değişmiş olabilir. Bilgisayardaki Ayarlar'da güncel bağlantı yazar, telefonda onu yeniden yapıştır.
+Önem dereceleri: çok düşük 10, düşük 20, orta 30, yüksek 40, çok yüksek 50 puan. Zincir eşikleri, bütün işlerin hedefte olduğu bir günün puanına göre kendiliğinden hesaplanır: zincir %60, normal gün %100, boş gün %160.
 
 ## Klasörler
 
 - `docs/` uygulamanın kendisi. Tarayıcı sürümü GitHub Pages'tan buradan yayınlanır; Android uygulaması da bu dosyaları içine alır.
-- `android/` Android uygulaması. `android/imza/` yükleme anahtarıdır ve GitHub'a gitmez.
-- `pc/server.js` bilgisayarda çalışan eşitleme programı. Ek paket gerektirmez, sadece Node.js.
-- `pc/veri/` bilgisayardaki veriler ve eşleştirme kodu. GitHub'a gitmez; yedek almak için bu klasörü kopyalaman yeterli.
+- `android/` Android uygulaması. `android/imza/` Play yükleme anahtarıdır ve GitHub'a gitmez.
 - `play/` Google Play mağaza metinleri, görseller ve yayınlama adımları.
 
 ## Android uygulamasını derlemek

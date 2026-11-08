@@ -53,8 +53,6 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
-        // The optional sync with a home PC speaks plain http inside the home network
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         s.setUserAgentString(s.getUserAgentString() + " RutinZinciriApp/" + BuildConfig.VERSION_NAME);
         web.setWebViewClient(new Client());
 
@@ -127,7 +125,7 @@ public class MainActivity extends Activity {
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
             Uri u = req.getUrl();
-            if (!HOST.equals(u.getHost())) return null;   // fonts and the PC sync go to the network as usual
+            if (!HOST.equals(u.getHost())) return null;   // fonts go to the network as usual
             String path = u.getPath();
             String name = path == null || path.equals("/") ? "index.html" : path.substring(1);
             if (!name.matches("[A-Za-z0-9_-][A-Za-z0-9._-]*")) return notFound();
@@ -146,7 +144,7 @@ public class MainActivity extends Activity {
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest req) {
             Uri u = req.getUrl();
             if (HOST.equals(u.getHost())) return false;
-            // Links to other sites (privacy policy, PC program guide) open in the browser
+            // Links to other sites (privacy policy) open in the browser
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW, u));
             } catch (Exception ignored) {

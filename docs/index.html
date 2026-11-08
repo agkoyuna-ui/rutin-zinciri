@@ -63,12 +63,6 @@ button{font:inherit;color:inherit}
 .wrap{max-width:760px;margin:0 auto;padding-inline:16px}
 .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 4px;flex-wrap:wrap}
 .meta{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
-.sync{display:inline-flex;align-items:center;gap:6px}
-.sync i{width:8px;height:8px;border-radius:50%;background:var(--part);display:inline-block}
-.sync[data-s="db"] i{background:var(--t3)}
-.sync[data-s="saving"] i{background:var(--t2)}
-.sync[data-s="err"] i{background:var(--t1)}
-.sync[data-s="local"] i{background:var(--muted)}
 .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .tabs button{appearance:none;flex:1;border:0;background:none;padding:10px 12px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
@@ -184,15 +178,9 @@ td input[aria-invalid="true"]{border-color:var(--t1)}
 .err{color:var(--t1);font-size:13px;margin:0;min-height:1em}
 .rules{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
 .btn{appearance:none;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-weight:600;cursor:pointer;align-self:flex-start}
-.syncline{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;font-weight:600}
 .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .field.wide{flex:1 1 220px}
 h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:4px 0 0}
-.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:14px}
-.copyrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.copyrow input{flex:1 1 200px;min-width:0;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);padding:0 10px;font:500 13px var(--f-mono)}
-.kv{margin:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
-.kv b{color:var(--ink);font-weight:500}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 a{color:var(--ink);text-underline-offset:3px}
 html.in-app .top{padding-top:0}
@@ -211,12 +199,17 @@ html.in-app body{padding-bottom:0}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap}
 .btnrow .btn{align-self:auto}
 .emptyrow{padding-block:16px;color:var(--muted);font-size:14px}
-details.sync-d summary{cursor:pointer;font-family:var(--f-display);font-size:17px;font-weight:600;list-style-position:outside}
-details.sync-d[open] summary{margin-bottom:12px}
 @media (max-width:440px){
   .irow{flex-wrap:wrap}
   .acts{width:100%;justify-content:flex-end}
 }
+.seg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:4px}
+.levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:4px}
+.seg3 button,.levels button{appearance:none;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:600 13px/1.2 var(--f-body);cursor:pointer;min-height:44px;padding:6px 4px}
+.levels button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:60px}
+.levels button small{font:500 11px var(--f-mono);color:var(--muted)}
+.seg3 button[aria-checked="true"],.levels button[aria-checked="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.levels button[aria-checked="true"] small{color:inherit;opacity:.8}
 </style>
 </head>
 <body>
@@ -227,21 +220,19 @@ details.sync-d[open] summary{margin-bottom:12px}
       <h1>Rutin Zinciri</h1>
       <div class="meta">
         <span id="dayCount" class="mono">Gün 1 / 90</span>
-        <span id="sync" class="sync" data-s="local" hidden><i></i><span id="syncTxt"></span></span>
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Bölümler">
       <button type="button" role="tab" id="tab-gun" data-tab="gun" aria-selected="true">Bugün</button>
       <button type="button" role="tab" id="tab-zincir" data-tab="zincir" aria-selected="false">Zincir</button>
       <button type="button" role="tab" id="tab-ilerleme" data-tab="ilerleme" aria-selected="false">İlerleme</button>
-      <button type="button" role="tab" id="tab-ayarlar" data-tab="ayarlar" aria-selected="false">Ayarlar</button>
+      <button type="button" role="tab" id="tab-ayarlar" data-tab="ayarlar" aria-selected="false">İşler</button>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
   <section id="v-gun" role="tabpanel" aria-labelledby="tab-gun">
-    <p id="localNote" class="note" hidden></p>
     <div class="datebar">
       <button type="button" id="prevDay" class="icon" aria-label="Önceki gün">‹</button>
       <div class="dlabel"><strong id="dTitle">Bugün</strong><span id="dSub"></span></div>
@@ -249,7 +240,7 @@ details.sync-d[open] summary{margin-bottom:12px}
     </div>
     <button type="button" id="goToday" class="linkbtn" hidden>Bugüne dön</button>
 
-    <div class="card">
+    <div class="card" id="scoreCard">
       <div class="score-top">
         <div><div class="lbl">Günün puanı</div><div class="big mono" id="scoreNum">0</div></div>
         <div class="score-side">
@@ -265,7 +256,13 @@ details.sync-d[open] summary{margin-bottom:12px}
       <p id="chainTxt" class="chaintxt"></p>
     </div>
 
-    <ol class="items" id="items" aria-label="Günün maddeleri"></ol>
+    <div class="card stack" id="emptyCard" hidden>
+      <h2>İlk işini ekle</h2>
+      <p class="muted small" style="margin:0">Her gün takip etmek istediğin şeyleri iş olarak ekle: kitap okumak, yürüyüş, sabah rutini… Puanını önem derecesine göre uygulama verir.</p>
+      <button type="button" class="btn primary" id="emptyAdd">İş ekle</button>
+    </div>
+
+    <ol class="items" id="items" aria-label="Günün işleri"></ol>
   </section>
 
   <section id="v-zincir" role="tabpanel" aria-labelledby="tab-zincir" hidden>
@@ -277,7 +274,7 @@ details.sync-d[open] summary{margin-bottom:12px}
         <span><i class="sw t3"></i><span id="lg3">Boş gün</span></span>
         <span><i class="sw t2"></i><span id="lg2">Normal gün</span></span>
         <span><i class="sw t1"></i><span id="lg1">Yoğun gün</span></span>
-        <span><i class="sw p"></i><span id="lgp">Eşiğin altında</span></span>
+        <span><i class="sw p"></i>Eşiğin altında</span>
         <span><i class="sw"></i>Hiç yapılmadı</span>
         <span><i class="sw f"></i>Gelecek</span>
       </div>
@@ -289,60 +286,47 @@ details.sync-d[open] summary{margin-bottom:12px}
     <div class="kpis" id="progKpis"></div>
     <div class="card">
       <h2>Dönem hedefine göre</h2>
-      <p class="muted small" style="margin:4px 0 0">Hedef, her maddenin günlük hedefi ile dönemdeki gün sayısının çarpımı. Çubuktaki ince çizgi bugüne kadar olman gereken yeri gösteriyor.</p>
+      <p class="muted small" style="margin:4px 0 0">Hedef, her işin günlük hedefi ile dönemdeki gün sayısının çarpımı. Çubuktaki ince çizgi bugüne kadar olman gereken yeri gösteriyor.</p>
       <div id="progList"></div>
     </div>
   </section>
 
   <section id="v-ayarlar" role="tabpanel" aria-labelledby="tab-ayarlar" hidden>
     <div class="card stack">
-      <h2>Maddeler</h2>
-      <p class="muted small" style="margin:0">Her gün takip ettiğin şeyler. Puanı, yaptığın miktar ve maddeye verdiğin birim puanı belirler.</p>
+      <h2>İşlerin</h2>
       <ul class="ilist" id="itemList"></ul>
       <div id="itemForm" class="stack iform" hidden>
-        <h3 id="formTitle">Yeni madde</h3>
-        <div class="fields">
-          <label class="field wide" for="f-name">Ad<input type="text" id="f-name" maxlength="40" placeholder="Örneğin Yürüyüş" autocomplete="off"></label>
-          <label class="field wide" for="f-kind">Tür
-            <select id="f-kind">
-              <option value="amt">Miktar (dakika, sayfa, adet…)</option>
-              <option value="check">Yapıldı / yapılmadı</option>
-              <option value="target">Hedefe yakınlık (kalori gibi)</option>
-            </select>
-          </label>
+        <h3 id="formTitle">Yeni iş</h3>
+        <label class="field" for="f-name">İşin adı<input type="text" id="f-name" maxlength="40" placeholder="Örneğin Kitap okumak" autocomplete="off"></label>
+
+        <div class="field" id="kindGroup">Türü
+          <div class="seg3" role="radiogroup" aria-label="İşin türü">
+            <button type="button" role="radio" data-kind="check" aria-checked="true">Tikli</button>
+            <button type="button" role="radio" data-kind="amt" aria-checked="false">Süreli</button>
+            <button type="button" role="radio" data-kind="target" aria-checked="false">Hedefe yakınlık</button>
+          </div>
         </div>
+        <p class="muted small" id="kindHelp" style="margin:0"></p>
+
         <div class="fields">
-          <label class="field" for="f-unit" data-k="amt target">Birim<input type="text" id="f-unit" maxlength="12" placeholder="dk" autocomplete="off"></label>
-          <label class="field" for="f-rate" data-k="amt">Birim başına puan<input type="number" id="f-rate" min="0" step="any" inputmode="decimal" placeholder="1"></label>
+          <label class="field" for="f-unit" data-k="amt target">Birim<input type="text" id="f-unit" maxlength="12" placeholder="dk, saat, sayfa…" autocomplete="off"></label>
           <label class="field" for="f-goal" data-k="amt">Günlük hedef<input type="number" id="f-goal" min="0" step="any" inputmode="decimal" placeholder="30"></label>
-          <label class="field" for="f-pts" data-k="check">Puan<input type="number" id="f-pts" min="0" step="any" inputmode="decimal" placeholder="5"></label>
           <label class="field" for="f-target" data-k="target">Hedef<input type="number" id="f-target" min="0" step="any" inputmode="decimal" placeholder="1500"></label>
-          <label class="field" for="f-max" data-k="target">Hedefteki puan<input type="number" id="f-max" min="0" step="any" inputmode="decimal" placeholder="50"></label>
           <label class="field" for="f-low" data-k="target">Bunun altında 0 puan<input type="number" id="f-low" min="0" step="any" inputmode="decimal" placeholder="500"></label>
           <label class="field" for="f-high" data-k="target">Bunun üstünde eksi puan<input type="number" id="f-high" min="0" step="any" inputmode="decimal" placeholder="2000"></label>
         </div>
-        <label class="field" for="f-hint">Açıklama (isteğe bağlı)<input type="text" id="f-hint" maxlength="60" placeholder="Örneğin Her öğün" autocomplete="off"></label>
-        <p class="muted small" id="f-help" style="margin:0"></p>
+
+        <div class="field">Önem derecesi
+          <div class="levels" role="radiogroup" aria-label="Önem derecesi" id="levelGroup"></div>
+        </div>
+
         <p class="err" id="f-err"></p>
         <div class="btnrow">
           <button type="button" class="btn primary" id="f-save">Kaydet</button>
           <button type="button" class="btn" id="f-cancel">Vazgeç</button>
         </div>
       </div>
-      <button type="button" class="btn" id="addItem">Madde ekle</button>
-    </div>
-
-    <div class="card stack">
-      <h2>Zincir eşikleri</h2>
-      <p class="muted small" style="margin:0">Bir günün zinciri sürdürmesi için gereken puan ve gün seviyeleri.</p>
-      <div class="fields">
-        <label class="field" for="th1">Zincir (yoğun gün)<input type="number" id="th1" min="1" step="1" inputmode="numeric"></label>
-        <label class="field" for="th2">Normal gün<input type="number" id="th2" min="1" step="1" inputmode="numeric"></label>
-        <label class="field" for="th3">Boş gün<input type="number" id="th3" min="1" step="1" inputmode="numeric"></label>
-      </div>
-      <p class="muted small" id="thHelp" style="margin:0"></p>
-      <p class="err" id="thErr"></p>
-      <button type="button" class="btn" id="thAuto">Maddelerime göre ayarla</button>
+      <button type="button" class="btn primary" id="addItem">İş ekle</button>
     </div>
 
     <div class="card stack">
@@ -358,48 +342,7 @@ details.sync-d[open] summary{margin-bottom:12px}
       <ul class="rules" id="rules"></ul>
     </div>
 
-    <div class="card stack">
-      <details class="sync-d" id="syncDetails">
-        <summary>Bilgisayarla eşitleme</summary>
-        <div class="stack">
-          <p class="syncline"><span id="sync2" class="sync" data-s="local"><i></i></span><span id="syncMsg"></span></p>
-
-          <div id="pcBlock" class="stack" hidden>
-            <p class="muted small" style="margin:0">Veriler bu bilgisayarda duruyor. Telefon evdeki Wi-Fi'ye bağlıyken ve bu program açıkken ikisi kendiliğinden eşitlenir. Dışarıdayken telefona girdiklerin telefonda bekler, eve gelince gönderilir.</p>
-            <div id="pairSteps" class="stack">
-              <h3>Telefonu bağla</h3>
-              <ol class="steps">
-                <li>Telefon bu bilgisayarla aynı Wi-Fi'de olsun.</li>
-                <li>Bu bağlantıyı telefonuna gönder (örneğin WhatsApp'ta kendine). Bağlantıyı başkasıyla paylaşma.
-                  <div class="copyrow"><input type="text" id="pairLink" readonly aria-label="Eşleştirme bağlantısı"><button type="button" class="btn" id="copyLink">Kopyala</button></div>
-                </li>
-                <li>Telefonda Rutin Zinciri uygulamasını aç. Ayarlar, Bilgisayarla eşitleme bölümünde bağlantıyı "PC adresi" alanına yapıştırıp Bağlan'a bas.</li>
-              </ol>
-              <p class="kv">Elle girmek için: PC adresi <b id="pairAddr" class="mono">–</b>, kod <b id="pairKey" class="mono">–</b></p>
-              <p class="kv">Uygulama yerine telefonun tarayıcısını kullanıyorsan şunu aç (sadece evde çalışır): <b id="lanLink" class="mono">–</b></p>
-            </div>
-            <p id="noLan" class="err" hidden>Bu bilgisayar şu an bir ağa bağlı görünmüyor. Wi-Fi'ye bağlanınca telefonu bağlama adımları burada çıkar.</p>
-          </div>
-
-          <div id="phoneBlock" class="stack" hidden>
-            <p class="muted small" style="margin:0">İstersen verilerini evdeki bilgisayarınla eşitleyebilirsin. Bunun için bilgisayarda Rutin Zinciri PC programı çalışmalı ve bu cihaz onunla aynı Wi-Fi'de olmalı. Dışarıdayken girdiklerin burada bekler, eve gelince gönderilir.</p>
-            <p class="muted small" style="margin:0"><a id="guideLink" href="https://github.com/agkoyuna-ui/rutin-zinciri" target="_blank" rel="noopener">PC programı nasıl kurulur</a></p>
-            <div class="fields">
-              <label class="field wide" for="pcAddr" id="pcAddrField">PC adresi ya da eşleştirme bağlantısı<input type="text" id="pcAddr" inputmode="url" placeholder="192.168.1.20:8765" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
-              <label class="field" for="pcKey">Kod<input type="text" id="pcKey" placeholder="abcde-fghjk" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
-            </div>
-            <div class="btnrow">
-              <button type="button" class="btn primary" id="pairBtn">Bağlan</button>
-              <button type="button" class="btn" id="unpairBtn" hidden>Eşitlemeyi kapat</button>
-            </div>
-            <p id="pairHint" class="err" hidden></p>
-            <p class="muted small" style="margin:0">Bağlandığında bilgisayardaki maddeler ve ayarlar bu cihaza gelir, günlük kayıtlar birleşir.</p>
-          </div>
-        </div>
-      </details>
-    </div>
-
-    <p class="muted small" style="margin:0;text-align:center"><a id="privacyLink" href="https://agkoyuna-ui.github.io/rutin-zinciri/gizlilik.html" target="_blank" rel="noopener">Gizlilik politikası</a></p>
+    <p class="muted small" style="margin:0;text-align:center"><a href="https://agkoyuna-ui.github.io/rutin-zinciri/gizlilik.html" target="_blank" rel="noopener">Gizlilik politikası</a></p>
   </section>
 </main>
 
@@ -407,25 +350,22 @@ details.sync-d[open] summary{margin-bottom:12px}
 (function(){
   "use strict";
   var DEFAULT_LEN = 90, MAX_ITEMS = 30;
-  var LS_KEY = "rutin-zinciri-v3", SYNC_LS = "rutin-zinciri-pc", TAB_LS = "rutin-zinciri-tab";
-  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/, FIELD_RE = /^[a-z0-9_]{1,32}$/, MAX_DOCS = 1000;
+  var LS_KEY = "rutin-zinciri-v3", TAB_LS = "rutin-zinciri-tab";
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/, FIELD_RE = /^[a-z0-9_]{1,32}$/;
   /* the Android app adds this to its user agent and serves this page from inside the app */
   var IN_APP = /\bRutinZinciriApp\//.test(navigator.userAgent);
-  /* a new user's starting list; everyone changes it under Ayarlar > Maddeler */
-  var DEFAULT_ITEMS = [
-    {id:"yuruyus", name:"Yürüyüş", kind:"amt", unit:"dk", rate:1, goal:30, hint:""},
-    {id:"kitap", name:"Kitap", kind:"amt", unit:"sayfa", rate:1, goal:10, hint:""},
-    {id:"sinav_adet", name:"Şınav", kind:"amt", unit:"adet", rate:0.5, goal:20, hint:""},
-    {id:"sabah", name:"Sabah rutini", kind:"check", pts:5, hint:""},
-    {id:"aksam", name:"Akşam planı", kind:"check", pts:4, hint:"Yarını planla"}
+  /* importance: points for a done check, for reaching the daily goal, or for hitting the target */
+  var LEVELS = [
+    {name:"Çok düşük", pts:10}, {name:"Düşük", pts:20}, {name:"Orta", pts:30}, {name:"Yüksek", pts:40}, {name:"Çok yüksek", pts:50}
   ];
+  var KINDS = {check:"Tikli", amt:"Süreli", target:"Hedefe yakınlık"};
   var TIER = ["", "Yoğun", "Normal", "Boş"];
   var MONTHS = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
   var nf = new Intl.NumberFormat("tr-TR", {maximumFractionDigits:1});
 
-  var cfg = null, cfgT = 0, cfgPending = false;
-  /* days[date] = {v:{id:amount}, ft:{id:lastEditMs}, t:lastEditMs}; dirty[date][id] marks fields not yet stored */
-  var days = {}, dirty = {};
+  var cfg = null;
+  /* days[date] = {v:{id:amount}, ft:{id:lastEditMs}, t:lastEditMs} */
+  var days = {};
   var viewDate = todayStr(), tab = "gun";
 
   function $(id){ return document.getElementById(id); }
@@ -436,45 +376,36 @@ details.sync-d[open] summary{margin-bottom:12px}
   function diffDays(a, b){ return Math.round((pd(b) - pd(a)) / 86400000); }
   function todayStr(){ return ds(new Date()); }
   function plain(x){ return x && typeof x === "object" && !Array.isArray(x) ? x : {}; }
-  function clone(x){ return JSON.parse(JSON.stringify(x)); }
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
   function round1(n){ return Math.round(n * 10) / 10; }
   function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
-  /* ---------- items and settings ---------- */
+  /* ---------- tasks and settings ---------- */
   function num(v, lo, hi){ return typeof v === "number" && isFinite(v) && v >= lo && v <= hi ? v : null; }
   function normItem(it){
     if (!it || typeof it !== "object") return null;
     var id = String(it.id || ""), name = String(it.name || "").trim().slice(0, 40), kind = it.kind;
-    if (!FIELD_RE.test(id) || !name) return null;
-    var out = {id:id, name:name, kind:kind, hint:String(it.hint || "").trim().slice(0, 60)};
-    if (kind === "check") { out.pts = num(it.pts, 0, 10000); return out.pts === null ? null : out; }
+    if (!FIELD_RE.test(id) || !name || !KINDS[kind]) return null;
+    var level = num(it.level, 1, 5);
+    if (level === null) {
+      /* tasks saved before importance levels: derive it from their old points */
+      var old = kind === "check" ? it.pts : kind === "target" ? it.max : null;
+      level = typeof old === "number" && isFinite(old) ? Math.min(5, Math.max(1, Math.round(old / 10))) : 3;
+    }
+    var out = {id:id, name:name, kind:kind, level:Math.round(level)};
+    if (kind === "check") return out;
     out.unit = String(it.unit || "").trim().slice(0, 12);
     if (kind === "amt") {
-      out.rate = num(it.rate, 0, 10000); out.goal = num(it.goal, 0.001, 99999);
-      return out.rate === null || out.goal === null ? null : out;
+      out.goal = num(it.goal, 0.001, 99999);
+      return out.goal === null ? null : out;
     }
-    if (kind === "target") {
-      out.target = num(it.target, 0.001, 99999); out.max = num(it.max, 0.001, 10000);
-      out.low = num(it.low, 0, 99999); out.high = num(it.high, 0, 999999);
-      if (out.target === null || out.max === null || out.low === null || out.high === null) return null;
-      return out.low < out.target && out.target < out.high ? out : null;
-    }
-    return null;
-  }
-  function goalPoints(it){ return it.kind === "amt" ? it.goal * it.rate : it.kind === "check" ? it.pts : it.max; }
-  function goalDay(list){ return list.reduce(function(s, it){ return s + goalPoints(it); }, 0); }
-  function roundTh(x){ return Math.max(5, Math.round(x / 5) * 5); }
-  /* chain at 60 %, normal day at 100 %, free day at 160 % of a day where every goal is met */
-  function autoTh(list){
-    var g = goalDay(list), t = [roundTh(g * 0.6), roundTh(g), roundTh(g * 1.6)];
-    if (t[1] <= t[0]) t[1] = t[0] + 5;
-    if (t[2] <= t[1]) t[2] = t[1] + 5;
-    return t;
+    out.target = num(it.target, 0.001, 99999); out.low = num(it.low, 0, 99999); out.high = num(it.high, 0, 999999);
+    if (out.target === null || out.low === null || out.high === null) return null;
+    return out.low < out.target && out.target < out.high ? out : null;
   }
   function normCfg(x){
     x = x && typeof x === "object" ? x : {};
-    var out = {start:todayStr(), len:DEFAULT_LEN, items:[], th:null};
+    var out = {start:todayStr(), len:DEFAULT_LEN, items:[]};
     if (typeof x.start === "string" && DATE_RE.test(x.start)) out.start = x.start;
     if (typeof x.len === "number" && x.len >= 7 && x.len <= 365) out.len = Math.round(x.len);
     if (Array.isArray(x.items)) {
@@ -483,16 +414,25 @@ details.sync-d[open] summary{margin-bottom:12px}
         var n = normItem(it);
         if (n && !seen[n.id] && out.items.length < MAX_ITEMS) { seen[n.id] = true; out.items.push(n); }
       });
-    } else out.items = clone(DEFAULT_ITEMS);
-    var t = x.th;
-    out.th = Array.isArray(t) && t.length === 3 && t.every(function(n){ return num(n, 0.001, 9999999) !== null; }) && t[0] < t[1] && t[1] < t[2] ? t.slice() : autoTh(out.items);
+    }
     return out;
   }
   function items(){ return cfg.items; }
-  function th(i){ return cfg.th[i - 1]; }
-  function barMax(){ return cfg.th[2] * 1.25; }
+  function levelPts(it){ return LEVELS[it.level - 1].pts; }
+  function goalDay(){ return items().reduce(function(s, it){ return s + levelPts(it); }, 0); }
+  function roundTh(x){ return Math.max(5, Math.round(x / 5) * 5); }
+  /* chain at 60 %, normal day at 100 %, free day at 160 % of a day where every task is on target */
+  function thresholds(){
+    var g = goalDay(), t = [roundTh(g * 0.6), roundTh(g), roundTh(g * 1.6)];
+    if (t[1] <= t[0]) t[1] = t[0] + 5;
+    if (t[2] <= t[1]) t[2] = t[1] + 5;
+    return t;
+  }
+  var TH = [5, 10, 15];
+  function th(i){ return TH[i - 1]; }
+  function barMax(){ return TH[2] * 1.25; }
 
-  /* ---------- this device's copy ---------- */
+  /* ---------- storage on this device ---------- */
   function lsGet(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
   function lsSet(k, v){ try { localStorage.setItem(k, v); return true; } catch(e) { return false; } }
   function normDay(e){
@@ -502,314 +442,40 @@ details.sync-d[open] summary{margin-bottom:12px}
     out.t = Number(e && e.t) || 0;
     return out;
   }
+  var OLD_SAMPLE = "yuruyus,kitap,sinav_adet,sabah,aksam";
   function loadLocal(){
     var raw = lsGet(LS_KEY), x = null;
     if (raw) { try { x = JSON.parse(raw); } catch(e) {} }
     if (x && typeof x === "object") {
-      var xd = plain(x.days), xq = plain(x.dirty);
+      var xd = plain(x.days);
       Object.keys(xd).forEach(function(k){ if (DATE_RE.test(k)) days[k] = normDay(xd[k]); });
-      Object.keys(xq).forEach(function(k){
-        if (!days[k]) return;
-        var o = {};
-        Object.keys(plain(xq[k])).forEach(function(f){ if (FIELD_RE.test(f)) o[f] = true; });
-        if (Object.keys(o).length) dirty[k] = o;
-      });
       if (x.cfg) cfg = normCfg(x.cfg);
-      cfgT = Number(x.cfgT) || 0;
-      cfgPending = !!x.cfgPending;
     }
-    /* first run: the period starts today; keep it so it does not move on the next launch */
-    if (!cfg) { cfg = normCfg({start:todayStr(), len:DEFAULT_LEN, items:clone(DEFAULT_ITEMS)}); saveLocal(); }
+    if (!cfg) cfg = normCfg({start:todayStr(), len:DEFAULT_LEN, items:[]});
+    /* the first version started with a sample list; an untouched one is cleared so everyone starts empty */
+    if (cfg.items.map(function(it){ return it.id; }).join(",") === OLD_SAMPLE && !Object.keys(days).some(function(d){ return Object.keys(days[d].v).length; })) cfg.items = [];
+    saveLocal();
   }
-  function saveLocal(){
-    lsSet(LS_KEY, JSON.stringify({days:days, dirty:dirty, cfg:cfg, cfgT:cfgT, cfgPending:cfgPending}));
-  }
-  function markDirty(date, f){ (dirty[date] || (dirty[date] = {}))[f] = true; }
-  function clearDirty(date, f){
-    if (!dirty[date]) return;
-    delete dirty[date][f];
-    if (!Object.keys(dirty[date]).length) delete dirty[date];
-  }
+  function saveLocal(){ lsSet(LS_KEY, JSON.stringify({days:days, cfg:cfg})); }
   function setField(date, id, n){
     var d = days[date] || (days[date] = {v:{}, ft:{}, t:0});
-    /* always newer than the copy we last saw, even if another device's clock runs ahead */
-    var stamp = Math.max(Date.now(), (d.ft[id] || 0) + 1);
+    var stamp = Date.now();
     d.v[id] = n > 0 ? Math.min(n, 99999) : 0;
-    d.ft[id] = stamp;
-    if (stamp > d.t) d.t = stamp;
-    markDirty(date, id);
+    d.ft[id] = stamp; d.t = stamp;
   }
-  function markCfg(){
-    cfgT = Math.max(Date.now(), cfgT + 1); cfgPending = true;
-    saveLocal();
-    scheduleSync();
-  }
+  function saveCfg(){ saveLocal(); renderAll(); }
 
-  /* ---------- optional sync with the program on a home PC ---------- */
-  var HOSTN = location.hostname;
-  var ON_PC = HOSTN === "localhost" || HOSTN === "127.0.0.1" || HOSTN === "[::1]";   /* opened on the PC itself */
-  var FROM_PC = location.protocol === "http:";                                         /* the PC program serves this page */
-  var syncConf = {addr:"", key:"", ok:false, last:0};
-  var syncTimer = null, syncing = false, syncAgain = false, burst = 0, nextAutoAt = 0;
-  var lastErr = null, lastErrMsg = "", pairInfo = null;
-
-  function normAddr(s){
-    s = String(s || "").trim().replace(/^https?:\/\//i, "").replace(/[\/#?].*$/, "");
-    if (!s) return "";
-    if (!/:\d{1,5}$/.test(s)) s += ":8765";
-    return /^[A-Za-z0-9.\-]+:\d{1,5}$/.test(s) ? s.toLowerCase() : "";
-  }
-  function normKey(s){ return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
-  function prettyKey(k){ return k.length > 5 ? k.slice(0, 5) + "-" + k.slice(5) : k; }
-  function saveSyncConf(){ lsSet(SYNC_LS, JSON.stringify(syncConf)); }
-  function loadSyncConf(){
-    var raw = lsGet(SYNC_LS);
-    if (raw) { try { var y = JSON.parse(raw); syncConf = {addr:normAddr(y.addr), key:normKey(y.key), ok:!!y.ok, last:Number(y.last) || 0}; } catch(e) {} }
-    /* pairing link from the PC: #pc=192.168.1.20:8765&kod=abcde-fghjk */
-    var h = location.hash.replace(/^#/, "");
-    if (!h) return;
-    var a = /(?:^|&)pc=([^&]+)/.exec(h), k = /(?:^|&)kod=([^&]+)/.exec(h), addr = "", key = "";
-    try { addr = a ? normAddr(decodeURIComponent(a[1])) : ""; key = k ? normKey(decodeURIComponent(k[1])) : ""; } catch(e) {}
-    if (key.length >= 8 && (addr || FROM_PC)) {
-      if (!addr) addr = syncConf.addr;
-      if (addr !== syncConf.addr || key !== syncConf.key) syncConf = {addr:addr, key:key, ok:false, last:0};
-      saveSyncConf();
-    }
-    if (a || k) { try { history.replaceState(null, "", location.pathname + location.search); } catch(e) {} }
-  }
-  function syncReady(){ return syncConf.key.length >= 8 && (FROM_PC || !!syncConf.addr); }
-  function baseUrl(){ return FROM_PC ? "" : "http://" + syncConf.addr; }
-  function pendingCount(){
-    var n = cfgPending ? 1 : 0;
-    Object.keys(dirty).forEach(function(date){ n += Object.keys(dirty[date]).length; });
-    return n;
-  }
-
-  async function api(pathname, method, body, ms){
-    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var to = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
-    try {
-      var headers = {"X-Rutin-Key": syncConf.key};
-      if (body) headers["Content-Type"] = "application/json";
-      var res = await fetch(baseUrl() + pathname, {method:method, headers:headers, body: body ? JSON.stringify(body) : undefined, cache:"no-store", signal: ctrl ? ctrl.signal : undefined});
-      var out = null;
-      try { out = await res.json(); } catch(e) {}
-      if (!res.ok || !out || !out.ok) {
-        var err = new Error((out && out.message) || ("HTTP " + res.status));
-        err.status = res.status || 500;
-        throw err;
-      }
-      return out;
-    } finally { if (to) clearTimeout(to); }
-  }
-
-  /* Take what the PC has that is newer, field by field; returns true if this device still has edits the PC lacks */
-  function mergeRemote(d, first){
-    var changed = false, reassert = false;
-    var rdays = plain(d && d.days);
-    Object.keys(rdays).forEach(function(date){
-      if (!DATE_RE.test(date)) return;
-      var r = plain(rdays[date]), rv = plain(r.v), rft = plain(r.ft), l = days[date], names = {};
-      Object.keys(rv).forEach(function(f){ names[f] = true; });
-      if (l) Object.keys(l.v).forEach(function(f){ names[f] = true; });
-      Object.keys(names).forEach(function(f){
-        if (!FIELD_RE.test(f)) return;
-        var rHas = typeof rv[f] === "number" && isFinite(rv[f]) && rv[f] >= 0;
-        var rt = Number(rft[f]) || 0;
-        var lHas = !!l && typeof l.v[f] === "number";
-        var lt = lHas ? (l.ft[f] || 0) : -1;
-        var isDirty = !!(dirty[date] && dirty[date][f]);
-        if (rHas && (rt > lt || (rt === lt && !isDirty && l.v[f] !== rv[f]))) {
-          if (!l) l = days[date] = {v:{}, ft:{}, t:0};
-          l.v[f] = rv[f]; l.ft[f] = rt;
-          if (rt > l.t) l.t = rt;
-          clearDirty(date, f);
-          changed = true;
-        } else if (lHas && !isDirty && (!rHas || lt > rt)) {
-          markDirty(date, f);
-          reassert = true;
-        }
-      });
-    });
-    Object.keys(days).forEach(function(date){
-      if (rdays[date]) return;
-      Object.keys(days[date].v).forEach(function(f){
-        if (!(dirty[date] && dirty[date][f])) { markDirty(date, f); reassert = true; }
-      });
-    });
-    var rt = Number(d && d.cfgT) || 0;
-    /* on a device's first contact the PC's items and settings win; daily records still merge */
-    if (d && d.cfg && (rt > cfgT || (first && rt > 0))) {
-      cfg = normCfg(d.cfg); cfgT = rt; cfgPending = false;
-      changed = true;
-    } else if (cfgT > rt && !cfgPending) {
-      cfgPending = true; reassert = true;
-    }
-    if (changed || reassert) saveLocal();
-    if (changed) renderAll();
-    return reassert;
-  }
-
-  function scheduleSync(ms){
-    paintSync();
-    if (!syncReady()) return;
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(sync, ms == null ? 800 : ms);
-  }
-  async function sync(){
-    clearTimeout(syncTimer); syncTimer = null;
-    if (!syncReady()) { paintSync(); return; }
-    if (syncing) { syncAgain = true; return; }
-    syncing = true;
-    paintSync();
-    var body = {days:{}}, sent = {}, push = false;
-    Object.keys(dirty).forEach(function(date){
-      var l = days[date];
-      if (!l) { delete dirty[date]; return; }
-      var e = {v:{}, ft:{}};
-      Object.keys(dirty[date]).forEach(function(f){ e.v[f] = l.v[f] || 0; e.ft[f] = l.ft[f] || 0; });
-      body.days[date] = e; sent[date] = e.ft; push = true;
-    });
-    var first = !syncConf.ok;
-    if (cfgPending && !first) { body.cfg = {start:cfg.start, len:cfg.len, items:cfg.items, th:cfg.th}; body.cfgT = cfgT; push = true; }
-    try {
-      /* the very first connection can sit behind the browser's local-network permission prompt */
-      var ms = syncConf.ok || FROM_PC ? 8000 : 45000;
-      var r = push ? await api("/api/sync", "POST", body, ms) : await api("/api/sync", "GET", null, ms);
-      Object.keys(sent).forEach(function(date){
-        Object.keys(sent[date]).forEach(function(f){ if (days[date] && (days[date].ft[f] || 0) === sent[date][f]) clearDirty(date, f); });
-      });
-      if (body.cfg && cfgT === body.cfgT) cfgPending = false;
-      mergeRemote(r.data, first);
-      saveLocal();
-      lastErr = null; lastErrMsg = "";
-      syncConf.ok = true; syncConf.last = Date.now();
-      saveSyncConf();
-      nextAutoAt = Date.now() + 20000;
-    } catch(e) {
-      if (e && e.status === 401) lastErr = "key";
-      else if (e && e.status) { lastErr = "server"; lastErrMsg = e.message || ""; }
-      else { lastErr = "away"; checkPermission(); }
-      nextAutoAt = Date.now() + 60000;
-    } finally {
-      syncing = false;
-      var more = syncAgain || (lastErr === null && pendingCount() > 0);
-      syncAgain = false;
-      /* cap back-to-back rounds so a value the PC keeps refusing cannot spin */
-      if (!more) burst = 0;
-      else if (++burst <= 4) scheduleSync(500);
-      paintSync();
-    }
-  }
-  function checkPermission(){
-    /* only a browser page on https reaching into the home network is gated by this permission */
-    if (IN_APP || location.protocol !== "https:" || !navigator.permissions || !navigator.permissions.query) return;
-    try {
-      navigator.permissions.query({name:"local-network-access"}).then(function(p){
-        if (p && p.state === "denied" && lastErr === "away") { lastErr = "perm"; paintSync(); }
-      }, function(){});
-    } catch(e) {}
-  }
-
-  function fmtWhen(ms){
-    var d = new Date(ms), t = d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
-    return ds(d) === todayStr() ? t : d.toLocaleDateString("tr-TR", {day:"numeric", month:"long"}) + " " + t;
-  }
-  function paintSync(){
-    var n = pendingCount(), s;
-    if (!syncReady()) s = ON_PC ? (lastErr ? "away" : "wait") : "none";
-    else if (lastErr === "key") s = "key";
-    else if (lastErr === "server") s = "err";
-    else if (lastErr === "perm") s = "perm";
-    else if (lastErr === "away") s = "away";
-    else if (!syncConf.ok) s = "wait";
-    else if (n) s = "saving";
-    else s = "ok";
-    var awayTxt = ON_PC ? "Program kapalı" : "PC'ye bağlı değil";
-    var map = {
-      none:["local",""], wait:["saving","Bağlanıyor"], ok:["db","Senkron açık"], saving:["saving","Kaydediliyor"],
-      away:["local", n ? awayTxt + " · " + n + " bekliyor" : awayTxt], perm:["err","İzin gerekli"], key:["err","Kod yanlış"], err:["err","Senkron hatası"]
-    };
-    var m = map[s];
-    /* nothing to show in the header for someone who does not sync */
-    $("sync").hidden = s === "none";
-    $("sync").dataset.s = m[0];
-    $("sync2").dataset.s = m[0];
-    $("syncTxt").textContent = m[1];
-    var last = syncConf.last ? " Son eşitleme " + fmtWhen(syncConf.last) + "." : "";
-    var waiting = n ? " " + n + " değişiklik bu cihazda bekliyor." : "";
-    var noteTxt =
-      s === "key" ? "Kod bilgisayardakiyle uyuşmuyor. Ayarlar'dan kontrol et." :
-      s === "err" ? (lastErrMsg || "Bilgisayardaki program bir hata döndürdü.") :
-      s === "perm" ? "Tarayıcı bu sayfanın ev ağına bağlanmasına izin vermiyor. Chrome'da Ayarlar, Site ayarları, Yerel ağ erişimi bölümünden bu siteye izin ver." :
-      s === "away" && ON_PC ? "Senkron programı çalışmıyor. Rutin Zinciri klasöründeki \"Rutin Zinciri\" dosyasını aç. Girdiklerin bu arada burada bekler." :
-      s === "away" && !syncConf.ok ? "Bilgisayara ulaşılamadı. Bu cihaz bilgisayarla aynı Wi-Fi'de mi, bilgisayarda Rutin Zinciri programı açık mı?" : "";
-    var note = $("localNote");
-    note.hidden = !noteTxt;
-    note.textContent = noteTxt;
-    $("syncMsg").textContent =
-      s === "ok" ? "Senkron açık." + last :
-      s === "saving" ? "Kaydediliyor…" :
-      s === "wait" ? "Bağlanıyor…" :
-      s === "none" ? "Kapalı. Veriler sadece bu cihazda." :
-      s === "away" && ON_PC ? "Senkron programı çalışmıyor." + waiting :
-      s === "away" ? "Bilgisayara şu an ulaşılamıyor. Evde değilsen bu normal." + waiting + last :
-      noteTxt;
-    $("unpairBtn").hidden = FROM_PC || !syncReady();
-  }
-
-  function renderPair(){
-    $("pcBlock").hidden = !ON_PC;
-    $("phoneBlock").hidden = ON_PC;
-    $("pcAddrField").hidden = FROM_PC;
-    if (ON_PC || syncReady()) $("syncDetails").open = true;
-    if (ON_PC) {
-      var p = pairInfo || {};
-      $("pairLink").value = p.link || "";
-      $("pairAddr").textContent = p.addr || "–";
-      $("pairKey").textContent = p.key || "–";
-      $("lanLink").textContent = p.lanLink || "–";
-      $("pairSteps").hidden = !!pairInfo && !p.link;
-      $("noLan").hidden = !pairInfo || !!p.link;
-    } else {
-      var act = document.activeElement;
-      if (act !== $("pcAddr")) $("pcAddr").value = syncConf.addr;
-      if (act !== $("pcKey")) $("pcKey").value = prettyKey(syncConf.key);
-    }
-  }
-  /* On the PC itself the program hands over the code, so there is nothing to type here */
-  function loadPair(){
-    if (!ON_PC) return;
-    fetch("/api/pair", {cache:"no-store"}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
-      if (!p || !p.key) throw new Error("pair");
-      pairInfo = p;
-      var k = normKey(p.key), fresh = k !== syncConf.key || !syncConf.ok;
-      syncConf.key = k;
-      saveSyncConf();
-      if (lastErr === "away" || lastErr === "key") lastErr = null;
-      renderPair();
-      if (fresh) sync(); else paintSync();
-    }).catch(function(){
-      if (!syncReady()) lastErr = "away";
-      paintSync();
-    });
-  }
-  function initSync(){
-    renderPair();
-    if (ON_PC) loadPair();
-    if (syncReady()) sync(); else paintSync();
-  }
-
-  /* ---------- scoring: points grow with the amount; a target item peaks at its target ---------- */
+  /* ---------- scoring ---------- */
   function val(date, id){ var d = days[date]; return d && typeof d.v[id] === "number" ? d.v[id] : 0; }
   function itemPoints(it, date){
-    var a = val(date, it.id);
+    var a = val(date, it.id), p = levelPts(it);
     if (!(a > 0)) return 0;
-    if (it.kind === "check") return it.pts;
-    if (it.kind === "amt") return a * it.rate;
+    if (it.kind === "check") return p;
+    /* reaching the daily goal earns the importance points; more keeps adding in proportion */
+    if (it.kind === "amt") return p * a / it.goal;
     /* full points at the target, none at or under `low`, below zero past `high` */
-    if (a <= it.target) return Math.max(0, it.max * (a - it.low) / (it.target - it.low));
-    return it.max * (1 - (a - it.target) / (it.high - it.target));
+    if (a <= it.target) return Math.max(0, p * (a - it.low) / (it.target - it.low));
+    return p * (1 - (a - it.target) / (it.high - it.target));
   }
   function pointsOf(date){
     var p = 0;
@@ -819,6 +485,7 @@ details.sync-d[open] summary{margin-bottom:12px}
   function anyDone(date){ return items().some(function(it){ return val(date, it.id) > 0; }); }
   function tierOf(date){
     var p = pointsOf(date);
+    if (!items().length) return 0;
     if (p >= th(3)) return 3; if (p >= th(2)) return 2; if (p >= th(1)) return 1;
     return anyDone(date) ? 0.5 : 0;
   }
@@ -842,19 +509,25 @@ details.sync-d[open] summary{margin-bottom:12px}
     if (unit === "dk" && n >= 120) s += " (" + nf.format(Math.round(n / 6) / 10) + " sa)";
     return s;
   }
+  function levelTxt(it){ return LEVELS[it.level - 1].name + " önem, " + levelPts(it) + " puan"; }
+  function shortInfo(it){
+    if (it.kind === "check") return "";
+    if (it.kind === "amt") return "Günlük hedef " + fmtAmt(it.goal, it.unit);
+    return "Hedef " + fmtAmt(it.target, it.unit);
+  }
 
   /* ---------- day view ---------- */
   var rowsKey = "";
-  function itemsKey(){ return JSON.stringify(items().map(function(it){ return [it.id, it.kind, it.name, it.unit || "", it.hint || ""]; })); }
+  function itemsKey(){ return JSON.stringify(items()); }
   function buildRows(){
     rowsKey = itemsKey();
     var ol = $("items");
     ol.textContent = "";
-    if (!items().length) { ol.append(el("li", "emptyrow", "Henüz madde yok. Ayarlar'dan madde ekleyebilirsin.")); return; }
+    ol.hidden = !items().length;
     items().forEach(function(it){
       var li = el("li", "row"); li.dataset.id = it.id; li.dataset.t = "0";
       var info = el("div", "info");
-      info.append(el("span", "nm", it.name), el("span", "hn", it.hint || ""), el("span", "st"));
+      info.append(el("span", "nm", it.name), el("span", "hn", shortInfo(it)), el("span", "st"));
       var ctl = el("div", "ctl");
       if (it.kind === "check") {
         var b = el("button", "chk");
@@ -881,21 +554,17 @@ details.sync-d[open] summary{margin-bottom:12px}
     });
   }
 
-  function afterEdit(skipId){
-    refreshDay(skipId);
-    renderHeader();
-    if (tab === "zincir") renderChain();
-    if (tab === "ilerleme") renderProg();
-    saveLocal();
-    scheduleSync();
-  }
   function setVal(id, n, fromInput){
     setField(viewDate, id, n);
-    afterEdit(fromInput ? id : null);
+    saveLocal();
+    refreshDay(fromInput ? id : null);
+    renderHeader();
   }
 
   function refreshDay(skipId){
-    var fut = isFuture();
+    var fut = isFuture(), none = !items().length;
+    $("emptyCard").hidden = !none;
+    $("scoreCard").hidden = none;
     items().forEach(function(it){
       var li = document.querySelector('.row[data-id="' + it.id + '"]');
       if (!li) return;
@@ -974,7 +643,9 @@ details.sync-d[open] summary{margin-bottom:12px}
     $("lg3").textContent = "Boş gün (" + nf.format(th(3)) + "+)";
     $("lg2").textContent = "Normal gün (" + nf.format(th(2)) + "+)";
     $("lg1").textContent = "Yoğun gün (" + nf.format(th(1)) + "+)";
-    $("chainNote").textContent = "Zincir, puanın en az " + nf.format(th(1)) + " olduğu günlerde devam eder. Bir güne dokunup o günü düzenleyebilirsin.";
+    $("chainNote").textContent = items().length
+      ? "Zincir, puanın en az " + nf.format(th(1)) + " olduğu günlerde devam eder. Bir güne dokunup o günü düzenleyebilirsin."
+      : "İş ekleyince zincirin burada görünür.";
 
     var cal = $("cal"), today = todayStr();
     cal.textContent = "";
@@ -1008,7 +679,7 @@ details.sync-d[open] summary{margin-bottom:12px}
     }
     var html = "", pctSum = 0, n = 0;
     items().forEach(function(it){
-      var done = 0, doneDays = 0, pts = 0;
+      var done = 0, doneDays = 0, pts = 0, lp = levelPts(it);
       for (var i = 0; i < elapsed; i++) {
         var dt = addDays(cfg.start, i), a = val(dt, it.id);
         if (a > 0) { done += a; doneDays++; }
@@ -1018,9 +689,9 @@ details.sync-d[open] summary{margin-bottom:12px}
       if (it.kind === "target") {
         /* how close to full points on every day of the period */
         var avgVal = doneDays ? done / doneDays : 0;
-        target = it.max * len; done = Math.max(0, pts); pct = done / target; expected = it.max * elapsed;
+        target = lp * len; done = Math.max(0, pts); pct = done / target; expected = lp * elapsed;
         line1 = doneDays ? "Günlük ortalama " + fmtAmt(avgVal, it.unit) + " · " + doneDays + " gün kayıt" : "Henüz kayıt yok. Hedef " + fmtAmt(it.target, it.unit);
-        line2 = ptsTxt + " · her gün hedefte olsan " + nf.format(round1(it.max * len)) + " puan";
+        line2 = ptsTxt + " · her gün hedefte olsan " + nf.format(lp * len) + " puan";
       } else if (it.kind === "check") {
         target = len; pct = doneDays / target; expected = elapsed;
         line1 = doneDays + " / " + target + " gün · kalan " + Math.max(target - doneDays, 0) + " gün";
@@ -1039,7 +710,7 @@ details.sync-d[open] summary{margin-bottom:12px}
         '<div class="pbar" data-s="' + s + '"><i style="width:' + Math.min(100, pct * 100) + '%"></i><b style="left:' + (expFrac * 100) + '%"></b></div>' +
         '<p class="pd mono">' + esc(line1) + '</p><p class="pd muted">' + esc(line2) + '</p></div>';
     });
-    $("progList").innerHTML = html || '<p class="emptyrow">Henüz madde yok.</p>';
+    $("progList").innerHTML = html || '<p class="emptyrow">İş ekleyince ilerlemen burada görünür.</p>';
     $("progKpis").innerHTML =
       kpi(elapsed + " / " + len, "Geçen gün") +
       kpi(elapsed ? nf.format(Math.round(ptsSum / elapsed)) : 0, "Ortalama günlük puan") +
@@ -1052,24 +723,24 @@ details.sync-d[open] summary{margin-bottom:12px}
         '<span><i class="sw"></i>Hiç ' + counts[0] + '</span></div></div>';
   }
 
-  /* ---------- settings: item list and editor ---------- */
-  var editingId = null, confirmDel = null;
+  /* ---------- tasks tab: list and editor ---------- */
+  var editingId = null, confirmDel = null, formKind = "check", formLevel = 3;
   function summary(it){
-    var u = it.unit || "birim";
-    if (it.kind === "check") return "Yapıldı / yapılmadı · " + nf.format(it.pts) + " puan";
-    if (it.kind === "amt") return u + " başına " + nf.format(it.rate) + " puan · günlük hedef " + fmtAmt(it.goal, it.unit);
-    return "Hedef " + fmtAmt(it.target, it.unit) + " · hedefte " + nf.format(it.max) + " puan · " + nf.format(it.low) + " ve altı 0 · " + nf.format(it.high) + " üstü eksi";
+    var s = KINDS[it.kind];
+    if (it.kind === "amt") s += " · günlük hedef " + fmtAmt(it.goal, it.unit);
+    if (it.kind === "target") s += " · hedef " + fmtAmt(it.target, it.unit) + " · " + nf.format(it.low) + " altı 0 · " + nf.format(it.high) + " üstü eksi";
+    return s + " · " + levelTxt(it);
   }
   function moveItem(i, d){
     var list = items().slice(), j = i + d;
     if (j < 0 || j >= list.length) return;
     var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
-    cfg.items = list; markCfg(); renderAll();
+    cfg.items = list; saveCfg();
   }
   function renderItemList(){
     var ul = $("itemList");
     ul.textContent = "";
-    if (!items().length) ul.append(el("li", "emptyrow", "Henüz madde yok."));
+    if (!items().length) ul.append(el("li", "emptyrow", "Henüz iş yok. Aşağıdan ilk işini ekle."));
     items().forEach(function(it, i){
       var li = el("li", "irow"), info = el("div", "info"), acts = el("div", "acts");
       info.append(el("span", "nm", it.name), el("span", "hn", summary(it)));
@@ -1079,11 +750,11 @@ details.sync-d[open] summary{margin-bottom:12px}
         return b;
       }
       if (confirmDel === it.id) {
-        info.append(el("span", "err", "Silinsin mi? Bu maddeye girdiğin kayıtlar artık puana sayılmaz."));
+        info.append(el("span", "err", "Silinsin mi? Bu işe girdiğin kayıtlar artık puana sayılmaz."));
         acts.append(
-          mini("Sil", it.name + " maddesini sil", function(){
+          mini("Sil", it.name + " işini sil", function(){
             cfg.items = items().filter(function(x){ return x.id !== it.id; });
-            confirmDel = null; markCfg(); renderAll();
+            confirmDel = null; saveCfg();
           }, "danger"),
           mini("Vazgeç", "Silmekten vazgeç", function(){ confirmDel = null; renderItemList(); })
         );
@@ -1092,43 +763,55 @@ details.sync-d[open] summary{margin-bottom:12px}
         var down = mini("↓", it.name + " aşağı", function(){ moveItem(i, 1); });
         up.disabled = i === 0; down.disabled = i === items().length - 1;
         acts.append(up, down,
-          mini("Düzenle", it.name + " maddesini düzenle", function(){ openForm(it); }),
-          mini("Sil", it.name + " maddesini sil", function(){ confirmDel = it.id; renderItemList(); }));
+          mini("Düzenle", it.name + " işini düzenle", function(){ openForm(it); }),
+          mini("Sil", it.name + " işini sil", function(){ confirmDel = it.id; renderItemList(); }));
       }
       li.append(info, acts);
       ul.append(li);
     });
     $("addItem").hidden = !$("itemForm").hidden || items().length >= MAX_ITEMS;
   }
-  var HELP = {
-    amt: "Yaptığın miktar kadar puan: birim başına 1 puan verirsen 45 dakika 45 puan eder. Günlük hedef sadece İlerleme sekmesinde kullanılır.",
-    check: "Yapıldı olarak işaretlediğin gün bu puanı alırsın.",
-    target: "Hedefe yaklaştıkça puan artar, hedefte en yüksek puanı alırsın. Alt sınırda ve altında puan 0 olur. Hedefi aştıkça puan düşer, üst sınırı geçince eksiye iner ve günün puanından düşer. Örneğin kalori için hedef 1500, alt sınır 500, üst sınır 2000."
+  var KIND_HELP = {
+    check: "Yaptığın gün işaretlersin, önem derecesinin puanını alırsın.",
+    amt: "Ne kadar yaptığını yazarsın. Günlük hedefe ulaşınca önem derecesinin puanını alırsın; fazlası daha çok puan getirir, hedefin iki katı iki kat puan eder.",
+    target: "Kalori gibi işler için. Hedefe yaklaştıkça puan artar, hedefte önem derecesinin puanını alırsın. Alt sınırda ve altında puan 0 olur; üst sınırı geçince puan eksiye düşer."
   };
-  function showKindFields(){
-    var k = $("f-kind").value;
-    document.querySelectorAll("#itemForm [data-k]").forEach(function(f){ f.hidden = f.dataset.k.split(" ").indexOf(k) < 0; });
-    $("f-help").textContent = HELP[k] || "";
+  function buildLevelButtons(){
+    var g = $("levelGroup");
+    LEVELS.forEach(function(l, i){
+      var b = el("button");
+      b.type = "button"; b.setAttribute("role", "radio"); b.dataset.level = String(i + 1);
+      b.append(el("span", null, l.name), el("small", null, l.pts + " puan"));
+      b.addEventListener("click", function(){ formLevel = i + 1; paintForm(); });
+      g.append(b);
+    });
+    document.querySelectorAll("#kindGroup [data-kind]").forEach(function(b){
+      b.addEventListener("click", function(){ formKind = b.dataset.kind; paintForm(); });
+    });
+  }
+  function paintForm(){
+    document.querySelectorAll("#kindGroup [data-kind]").forEach(function(b){ b.setAttribute("aria-checked", String(b.dataset.kind === formKind)); });
+    document.querySelectorAll("#levelGroup [data-level]").forEach(function(b){ b.setAttribute("aria-checked", String(Number(b.dataset.level) === formLevel)); });
+    document.querySelectorAll("#itemForm [data-k]").forEach(function(f){ f.hidden = f.dataset.k.split(" ").indexOf(formKind) < 0; });
+    $("kindHelp").textContent = KIND_HELP[formKind];
   }
   function openForm(it){
     editingId = it ? it.id : null;
     confirmDel = null;
-    $("formTitle").textContent = it ? it.name + " maddesini düzenle" : "Yeni madde";
+    formKind = it ? it.kind : "check";
+    formLevel = it ? it.level : 3;
+    $("formTitle").textContent = it ? it.name + " işini düzenle" : "Yeni iş";
     $("f-name").value = it ? it.name : "";
-    $("f-kind").value = it ? it.kind : "amt";
     $("f-unit").value = it && it.unit ? it.unit : "";
-    $("f-rate").value = it && it.kind === "amt" ? it.rate : "";
     $("f-goal").value = it && it.kind === "amt" ? it.goal : "";
-    $("f-pts").value = it && it.kind === "check" ? it.pts : "";
     $("f-target").value = it && it.kind === "target" ? it.target : "";
-    $("f-max").value = it && it.kind === "target" ? it.max : "";
     $("f-low").value = it && it.kind === "target" ? it.low : "";
     $("f-high").value = it && it.kind === "target" ? it.high : "";
-    $("f-hint").value = it ? it.hint || "" : "";
     $("f-err").textContent = "";
     $("itemForm").hidden = false;
-    showKindFields();
+    paintForm();
     renderItemList();
+    $("itemForm").scrollIntoView({block:"start"});
     $("f-name").focus();
   }
   function closeForm(){
@@ -1138,24 +821,18 @@ details.sync-d[open] summary{margin-bottom:12px}
   }
   function numIn(id){ var n = parseFloat(String($(id).value).replace(",", ".")); return isFinite(n) ? n : null; }
   function saveForm(){
-    var kind = $("f-kind").value, name = $("f-name").value.trim(), err = "";
-    var it = {id: editingId || ("m" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36)), name:name, kind:kind, hint:$("f-hint").value.trim()};
-    if (!name) err = "Bir ad yaz.";
-    else if (kind === "check") {
-      it.pts = numIn("f-pts");
-      if (!(it.pts >= 0)) err = "Puanı yaz, örneğin 5.";
-    } else {
-      it.unit = $("f-unit").value.trim();
-      if (kind === "amt") {
-        it.rate = numIn("f-rate"); it.goal = numIn("f-goal");
-        if (!(it.rate >= 0)) err = "Birim başına puanı yaz, örneğin 1.";
-        else if (!(it.goal > 0)) err = "Günlük hedefi sıfırdan büyük bir sayı olarak yaz.";
-      } else {
-        it.target = numIn("f-target"); it.max = numIn("f-max"); it.low = numIn("f-low"); it.high = numIn("f-high");
-        if (!(it.target > 0) || !(it.max > 0)) err = "Hedefi ve hedefteki puanı sıfırdan büyük sayılar olarak yaz.";
-        else if (!(it.low >= 0 && it.low < it.target)) err = "Alt sınır hedeften küçük olmalı.";
-        else if (!(it.high > it.target)) err = "Üst sınır hedeften büyük olmalı.";
-      }
+    var name = $("f-name").value.trim(), err = "";
+    var it = {id: editingId || ("m" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36)), name:name, kind:formKind, level:formLevel};
+    if (!name) err = "İşin adını yaz.";
+    else if (formKind === "amt") {
+      it.unit = $("f-unit").value.trim(); it.goal = numIn("f-goal");
+      if (!it.unit) err = "Birimi yaz, örneğin dk, saat ya da sayfa.";
+      else if (!(it.goal > 0)) err = "Günlük hedefi sıfırdan büyük bir sayı olarak yaz.";
+    } else if (formKind === "target") {
+      it.unit = $("f-unit").value.trim(); it.target = numIn("f-target"); it.low = numIn("f-low"); it.high = numIn("f-high");
+      if (!(it.target > 0)) err = "Hedefi sıfırdan büyük bir sayı olarak yaz.";
+      else if (!(it.low >= 0 && it.low < it.target)) err = "Alt sınır hedeften küçük olmalı.";
+      else if (!(it.high > it.target)) err = "Üst sınır hedeften büyük olmalı.";
     }
     var clean = err ? null : normItem(it);
     if (!err && !clean) err = "Değerlerden biri çok büyük ya da geçersiz.";
@@ -1165,38 +842,30 @@ details.sync-d[open] summary{margin-bottom:12px}
     if (at >= 0) list[at] = clean; else list.push(clean);
     cfg.items = list;
     editingId = null;
+    $("f-err").textContent = "";
     $("itemForm").hidden = true;
-    markCfg(); renderAll();
+    saveCfg();
   }
 
   function renderRules(){
     var ul = $("rules");
     ul.textContent = "";
-    items().forEach(function(it){
-      var u = it.unit || "birim", t;
-      if (it.kind === "check") t = it.name + ": yapıldıysa " + nf.format(it.pts) + " puan.";
-      else if (it.kind === "amt") t = it.name + ": " + u + " başına " + nf.format(it.rate) + " puan.";
-      else t = it.name + ": hedefte (" + fmtAmt(it.target, it.unit) + ") " + nf.format(it.max) + " puan. " + nf.format(it.low) + " ve altında 0 puan; " + nf.format(it.high) + " üstünde eksiye iner ve günün puanından düşer.";
-      ul.append(el("li", null, t));
-    });
-    ul.append(el("li", null, "Puanın üst sınırı yok, yaptıkça artar. Zincir " + nf.format(th(1)) + " puanda devam eder; " + nf.format(th(2)) + " puan normal, " + nf.format(th(3)) + " puan boş gün seviyesi."));
+    [
+      "Önem dereceleri: " + LEVELS.map(function(l){ return l.name + " " + l.pts; }).join(", ") + " puan.",
+      "Tikli işler: yaptığın gün önem derecesinin puanı.",
+      "Süreli işler: günlük hedefe ulaşınca önem derecesinin puanı. Fazlası oranında artar; hedefin yarısı yarım, iki katı iki kat puan.",
+      "Hedefe yakınlık: hedefte önem derecesinin puanı. Alt sınırda ve altında 0; üst sınırı geçince eksiye iner ve günün puanından düşer.",
+      items().length
+        ? "Bütün işlerin hedefte olduğu bir gün " + nf.format(goalDay()) + " puan eder. Zincir bunun %60'ında (" + nf.format(th(1)) + " puan) devam eder; " + nf.format(th(2)) + " puan normal, " + nf.format(th(3)) + " puan boş gün seviyesi."
+        : "Zincir eşikleri eklediğin işlere göre kendiliğinden hesaplanır."
+    ].forEach(function(t){ ul.append(el("li", null, t)); });
   }
   function fillSettings(){
     var act = document.activeElement;
     if (act !== $("setStart")) $("setStart").value = cfg.start;
     if (act !== $("setLen")) $("setLen").value = cfg.len;
-    [1,2,3].forEach(function(i){ var inp = $("th" + i); if (inp !== act) { inp.value = th(i); inp.removeAttribute("aria-invalid"); } });
-    $("thHelp").textContent = "Maddelerinle bütün günlük hedefleri tutturduğun bir gün " + nf.format(round1(goalDay(items()))) + " puan ediyor.";
     renderItemList();
     renderRules();
-  }
-  function onThChange(){
-    var v = [1,2,3].map(function(i){ return numIn("th" + i); });
-    var ok = v.every(function(n){ return n > 0 && n < 9999999; }) && v[0] < v[1] && v[1] < v[2];
-    [1,2,3].forEach(function(i){ $("th" + i).setAttribute("aria-invalid", ok ? "false" : "true"); });
-    if (!ok) { $("thErr").textContent = "Eşikler sıfırdan büyük olmalı ve zincir < normal < boş sırasında olmalı."; return; }
-    $("thErr").textContent = "";
-    cfg.th = v; markCfg(); renderAll();
   }
 
   /* ---------- tabs & wiring ---------- */
@@ -1208,10 +877,11 @@ details.sync-d[open] summary{margin-bottom:12px}
     });
     if (t === "zincir") renderChain();
     if (t === "ilerleme") renderProg();
-    if (t === "ayarlar") { fillSettings(); renderPair(); loadPair(); }
+    if (t === "ayarlar") fillSettings();
     lsSet(TAB_LS, t);
   }
   function renderAll(){
+    TH = thresholds();
     if (itemsKey() !== rowsKey) buildRows();
     renderHeader();
     refreshDay(null);
@@ -1227,81 +897,37 @@ details.sync-d[open] summary{margin-bottom:12px}
   $("setStart").addEventListener("change", function(){
     var v = $("setStart").value;
     if (!DATE_RE.test(v)) return;
-    cfg.start = v; markCfg(); renderAll();
+    cfg.start = v; saveCfg();
   });
   $("setLen").addEventListener("change", function(){
     var n = Math.round(Number($("setLen").value));
     if (!(n >= 7 && n <= 365)) { $("setLen").value = cfg.len; return; }
-    cfg.len = n; markCfg(); renderAll();
+    cfg.len = n; saveCfg();
   });
   $("addItem").addEventListener("click", function(){ openForm(null); });
-  $("f-kind").addEventListener("change", showKindFields);
+  $("emptyAdd").addEventListener("click", function(){ switchTab("ayarlar"); openForm(null); });
   $("f-save").addEventListener("click", saveForm);
   $("f-cancel").addEventListener("click", closeForm);
-  [1,2,3].forEach(function(i){ $("th" + i).addEventListener("change", onThChange); });
-  $("thAuto").addEventListener("click", function(){
-    cfg.th = autoTh(items()); $("thErr").textContent = "";
-    markCfg(); renderAll();
-  });
-
-  $("pairBtn").addEventListener("click", function(){
-    /* the whole pairing link can be pasted into either field */
-    var rawA = $("pcAddr").value, rawK = $("pcKey").value, both = rawA + " " + rawK;
-    var mPc = /[#&?]pc=([^&\s]+)/.exec(both), mK = /[#&?]kod=([^&\s]+)/.exec(both);
-    try { if (mPc) rawA = decodeURIComponent(mPc[1]); if (mK) rawK = decodeURIComponent(mK[1]); } catch(e) {}
-    var addr = FROM_PC ? syncConf.addr : normAddr(rawA), key = normKey(rawK);
-    var hint = $("pairHint");
-    hint.textContent = !FROM_PC && !addr ? "Bilgisayardaki Ayarlar'da yazan adresi gir, örneğin 192.168.1.20:8765, ya da eşleştirme bağlantısını yapıştır." :
-      key.length < 8 ? "Bilgisayardaki Ayarlar'da yazan kodu gir." : "";
-    hint.hidden = !hint.textContent;
-    if (hint.textContent) return;
-    $("pcAddr").value = addr; $("pcKey").value = prettyKey(key);
-    syncConf = {addr:addr, key:key, ok:false, last:0};
-    saveSyncConf();
-    lastErr = null; burst = 0;
-    sync();
-  });
-  $("unpairBtn").addEventListener("click", function(){
-    syncConf = {addr:"", key:"", ok:false, last:0};
-    saveSyncConf();
-    lastErr = null;
-    renderPair(); paintSync();
-  });
-  $("copyLink").addEventListener("click", function(){
-    var inp = $("pairLink"), btn = $("copyLink");
-    function done(){ btn.textContent = "Kopyalandı"; setTimeout(function(){ btn.textContent = "Kopyala"; }, 1500); }
-    function fallback(){ inp.focus(); inp.select(); try { if (document.execCommand("copy")) done(); } catch(e) {} }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).then(done, fallback);
-    else fallback();
-  });
+  buildLevelButtons();
 
   var lastDay = todayStr();
   function checkDayRollover(){
     var t = todayStr();
     if (t !== lastDay) { if (viewDate === lastDay) viewDate = t; lastDay = t; renderAll(); }
   }
-  setInterval(function(){
-    checkDayRollover();
-    if (document.visibilityState === "visible" && syncReady() && Date.now() >= nextAutoAt) sync();
-  }, 10000);
-  document.addEventListener("visibilitychange", function(){
-    if (document.visibilityState === "visible") { checkDayRollover(); if (syncReady()) sync(); }
-    else if (pendingCount() && syncReady()) sync();
-  });
-  window.addEventListener("online", function(){ if (syncReady()) sync(); });
+  setInterval(checkDayRollover, 30000);
+  document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") checkDayRollover(); });
 
-  /* records from the old scoring system are deleted on every device */
-  try { localStorage.removeItem("rutin-zinciri-v2"); } catch(e) {}
+  try { localStorage.removeItem("rutin-zinciri-v2"); localStorage.removeItem("rutin-zinciri-pc"); } catch(e) {}
   loadLocal();
-  loadSyncConf();
   var savedTab = lsGet(TAB_LS);
   if (savedTab && $("v-" + savedTab)) tab = savedTab;
+  TH = thresholds();
   buildRows();
   switchTab(tab);
   renderAll();
-  initSync();
   /* keeps the browser version opening without a connection; the Android app carries its own copy */
-  if (!IN_APP && "serviceWorker" in navigator && (location.protocol === "https:" || ON_PC)) {
+  if (!IN_APP && "serviceWorker" in navigator && location.protocol === "https:") {
     navigator.serviceWorker.register("sw.js").catch(function(){});
   }
 })();
