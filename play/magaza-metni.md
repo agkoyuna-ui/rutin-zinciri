@@ -41,7 +41,7 @@ Bütün işlerini bitir, 100 puanı al
 Bütün işlerini tamamladığın gün tam 100 puan alırsın. Her işe beş önem derecesinden birini ver: çok düşük, düşük, orta, yüksek, çok yüksek. Önemli işler bu 100 puandan daha büyük pay alır. Süreli işlerde günlük hedefi geçersen fazlası ek puan olur.
 
 Zincirini koru
-Günün puanı 60'ı geçtiğinde zincir devam eder. Takvimde her gün rengiyle görünür: yoğun, normal ya da boş gün seviyesi. Şu anki ve en uzun zincirini takip et.
+Günün puanı 40'ı geçtiğinde zincir devam eder. Takvimde her gün rengiyle görünür: yoğun, normal ya da boş gün seviyesi. Şu anki ve en uzun zincirini takip et.
 
 İlerlemeni gör
 Dönem boyunca her işte hedefinin neresinde olduğunu, günlük ortalamanı ve toplam puanını gör. Dönemin süresini ve başlangıcını sen seç.

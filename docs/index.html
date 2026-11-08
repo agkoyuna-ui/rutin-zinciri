@@ -427,8 +427,8 @@ html.in-app body{padding-bottom:0}
     var total = items().reduce(function(s, x){ return s + weight(x); }, 0);
     return total ? 100 * weight(it) / total : 0;
   }
-  /* chain at 60, normal day at 100 (everything done), free day at 150 with extra over the goals */
-  function thresholds(){ return [60, 100, 150]; }
+  /* every task fully done (100) is a free day; less done slides down to normal (70) and busy (40, where the chain still holds) */
+  function thresholds(){ return [40, 70, 100]; }
   var TH = thresholds();
   function th(i){ return TH[i - 1]; }
   function barMax(){ return TH[2] * 1.25; }
@@ -601,7 +601,7 @@ html.in-app body{padding-bottom:0}
     var ct = $("chainTxt");
     if (fut) ct.textContent = "Bu gün henüz gelmedi.";
     else if (t >= 1 && t < 3) ct.textContent = "Zincir bu gün için tamam. " + TIER[t + 1] + " gün seviyesine " + nf.format(round1(th(t + 1) - p)) + " puan var.";
-    else if (t === 3) ct.textContent = "Zincir tamam, boş gün seviyesini geçtin. Yaptıkça puan artmaya devam eder.";
+    else if (t === 3) ct.textContent = p > th(3) ? "Bütün işlerin tamam, üstüne ek puan aldın." : "Bütün işlerin tamam. Süreli işlerde hedefi geçersen ek puan alırsın.";
     else ct.textContent = "Zinciri korumak için " + nf.format(round1(th(1) - p)) + " puan daha lazım.";
 
     var d = pd(viewDate), today = todayStr();
@@ -858,7 +858,7 @@ html.in-app body{padding-bottom:0}
       "Önem derecesi, bir işin bu 100 puandan aldığı payı belirler. Çok yüksek önemli bir iş, çok düşük önemli bir işin 5 katı pay alır.",
       "Süreli işte günlük hedefi geçersen fazlası ek puan olur ve gün 100'ü geçebilir. Hedefin yarısında payının yarısını alırsın.",
       "Hedefe yakınlıkta hedeften uzaklaştıkça pay azalır. Alt sınırda ve altında 0 olur; üst sınırı geçince eksiye iner ve günün puanından düşer.",
-      "Zincir " + th(1) + " puanda devam eder; " + th(2) + " puan normal, " + th(3) + " puan boş gün seviyesi."
+      "Bütün işlerin tamam olduğu gün (" + th(3) + " puan) boş gün seviyesidir. Daha az yaptıkça seviye düşer: " + th(2) + " puan normal, " + th(1) + " puan yoğun gün. Zincir yoğun gün seviyesinden itibaren devam eder."
     ].forEach(function(t){ ul.append(el("li", null, t)); });
   }
   function fillSettings(){

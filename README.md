@@ -1,6 +1,6 @@
 # Rutin Zinciri
 
-Günlük rutinlerini puana çeviren bir alışkanlık takipçisi. Uygulama boş başlar; takip etmek istediğin işleri sen eklersin, her işe bir önem derecesi verirsin. Bütün işlerini tamamladığın gün 100 puan alırsın; günün puanı 60'ı geçtiğinde zincir devam eder.
+Günlük rutinlerini puana çeviren bir alışkanlık takipçisi. Uygulama boş başlar; takip etmek istediğin işleri sen eklersin, her işe bir önem derecesi verirsin. Bütün işlerini tamamladığın gün 100 puan alırsın; günün puanı 40'ı geçtiğinde zincir devam eder.
 
 - **Android uygulaması:** Google Play'de (paket adı `com.zincir.app`). İnternetsiz çalışır, veriler telefonda kalır.
 - **Tarayıcı sürümü:** https://agkoyuna-ui.github.io/rutin-zinciri/
@@ -16,7 +16,7 @@ Bütün işlerin tamam olduğu gün 100 puandır. Her iş bu 100 puandan önem d
 | Süreli (dk, saat, sayfa…) | Günlük hedefe ulaşınca. Hedefin yarısı yarım pay, hedefi geçersen fazlası ek puan |
 | Hedefe yakınlık (kalori gibi) | Tam hedefte. Alt sınırda 0, üst sınırı geçince eksi |
 
-Zincir 60 puanda devam eder; 100 normal gün, 150 boş gün seviyesidir.
+Bütün işlerin tamam olduğu gün (100 puan) boş gün seviyesidir; 70 puan normal, 40 puan yoğun gün. Zincir yoğun gün seviyesinden itibaren devam eder.
 
 ## Klasörler
 
